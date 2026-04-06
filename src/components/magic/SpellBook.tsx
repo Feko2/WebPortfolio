@@ -50,7 +50,7 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
 
   return (
     <div
-      className="relative w-full h-full flex pt-20 pb-16 min-h-0"
+      className="relative w-full h-full flex flex-col min-h-0"
       style={{
         background:
           "linear-gradient(165deg, #e8d4b8 0%, #d9c4a4 18%, #cbb592 42%, #d4c09a 65%, #e0cfa8 100%)",
@@ -66,7 +66,10 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
         aria-hidden
       />
 
-      <div className="relative z-10 flex w-full min-h-0">
+      {/* Spacer to clear the fixed TopBar (same height as InventoryView) */}
+      <div className="relative z-10 shrink-0 h-[56px]" aria-hidden />
+
+      <div className="relative z-10 flex flex-1 min-h-0 w-full pb-16">
         {/* Section navigation */}
         <aside
           className="w-[min(280px,32vw)] shrink-0 flex flex-col pl-8 pr-5 border-r border-[rgba(60,35,12,0.18)]"
