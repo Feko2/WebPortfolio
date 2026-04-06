@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useCallback,
-  memo,
-} from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { motion } from "framer-motion";
 import { skills, SkillCategory, SkillNode } from "@/data/skills";
 
@@ -298,12 +291,6 @@ const ConstellationSVG = memo(function ConstellationSVG({
 export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
-  /** After a horizontal carousel step, short fixed cooldown (not “silence until inertia stops”). */
-  const carouselHorizontalWheelLock = useRef(false);
-  /** After wheel-triggered enter-focus, brief cooldown (avoids double-enter before state updates). */
-  const carouselVerticalWheelLock = useRef(false);
-  /** Wheel handler reads this so routing updates immediately when exiting focus mid-gesture. */
-  const focusedNodeRef = useRef<number | null>(null);
 
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [spacing, setSpacing] = useState(550);
@@ -339,139 +326,6 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
 
   const exitFocused = useCallback(() => {
     setFocusedNode(null);
-  }, []);
-
-  const navigateRef = useRef(navigate);
-  const enterFocusedRef = useRef(enterFocused);
-  const exitFocusedRef = useRef(exitFocused);
-
-  useLayoutEffect(() => {
-    focusedNodeRef.current = focusedNode;
-    navigateRef.current = navigate;
-    enterFocusedRef.current = enterFocused;
-    exitFocusedRef.current = exitFocused;
-  });
-
-  /** Unlock carousel wheel only when leaving focused mode — not on every activeIndex change. */
-  useEffect(() => {
-    if (focusedNode === null) {
-      carouselHorizontalWheelLock.current = false;
-      carouselVerticalWheelLock.current = false;
-    }
-  }, [focusedNode]);
-
-  /* Wheel — carousel: each qualifying tick is one step (like an arrow key). Cooldowns are fixed
-   * timeouts that are NOT reset by every inertia event (resetting caused ~1–2s waits until scrolling
-   * fully stopped). Focused mode: scroll-down still uses small accumulation to exit. */
-  useEffect(() => {
-    let focusAccumX = 0;
-    let focusAccumY = 0;
-    let horizontalCooldownTimer: ReturnType<typeof setTimeout> | null = null;
-    let verticalCooldownTimer: ReturnType<typeof setTimeout> | null = null;
-
-    /** Ignore sub-pixel noise; one tick past this with horizontal dominance = one carousel step. */
-    const HORIZONTAL_MIN_DX = 6;
-    /** One dominant upward tick enters focus (deltaY negative). */
-    const VERTICAL_UP_MIN_DY = 20;
-    const FOCUS_SCROLL_DOWN_THRESHOLD = 90;
-
-    const clearHorizontalCooldownTimer = () => {
-      if (horizontalCooldownTimer) {
-        clearTimeout(horizontalCooldownTimer);
-        horizontalCooldownTimer = null;
-      }
-    };
-
-    const clearVerticalCooldownTimer = () => {
-      if (verticalCooldownTimer) {
-        clearTimeout(verticalCooldownTimer);
-        verticalCooldownTimer = null;
-      }
-    };
-
-    const armHorizontalCooldown = () => {
-      clearHorizontalCooldownTimer();
-      carouselHorizontalWheelLock.current = true;
-      horizontalCooldownTimer = setTimeout(() => {
-        carouselHorizontalWheelLock.current = false;
-        horizontalCooldownTimer = null;
-      }, 140);
-    };
-
-    const armVerticalEnterCooldown = () => {
-      clearVerticalCooldownTimer();
-      carouselVerticalWheelLock.current = true;
-      carouselHorizontalWheelLock.current = true;
-      verticalCooldownTimer = setTimeout(() => {
-        carouselVerticalWheelLock.current = false;
-        carouselHorizontalWheelLock.current = false;
-        verticalCooldownTimer = null;
-      }, 140);
-    };
-
-    const wheelToPixels = (ev: WheelEvent) => {
-      let dx = ev.deltaX;
-      let dy = ev.deltaY;
-      if (ev.deltaMode === 1) {
-        dx *= 16;
-        dy *= 16;
-      } else if (ev.deltaMode === 2) {
-        dx *= 800;
-        dy *= 800;
-      }
-      return { dx, dy };
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const { dx, dy } = wheelToPixels(e);
-
-      if (focusedNodeRef.current !== null) {
-        focusAccumX += dx;
-        focusAccumY += dy;
-
-        if (
-          focusAccumY >= FOCUS_SCROLL_DOWN_THRESHOLD &&
-          focusAccumY > Math.abs(focusAccumX)
-        ) {
-          focusedNodeRef.current = null;
-          carouselHorizontalWheelLock.current = false;
-          carouselVerticalWheelLock.current = false;
-          clearHorizontalCooldownTimer();
-          clearVerticalCooldownTimer();
-          focusAccumX = 0;
-          focusAccumY = 0;
-          exitFocusedRef.current();
-        }
-        return;
-      }
-
-      if (
-        !carouselHorizontalWheelLock.current &&
-        Math.abs(dx) > Math.abs(dy) &&
-        Math.abs(dx) >= HORIZONTAL_MIN_DX
-      ) {
-        navigateRef.current(dx > 0 ? 1 : -1);
-        armHorizontalCooldown();
-        return;
-      }
-
-      if (
-        !carouselVerticalWheelLock.current &&
-        dy < 0 &&
-        Math.abs(dy) > Math.abs(dx) &&
-        Math.abs(dy) >= VERTICAL_UP_MIN_DY
-      ) {
-        enterFocusedRef.current();
-        armVerticalEnterCooldown();
-      }
-    };
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      window.removeEventListener("wheel", handleWheel);
-      clearHorizontalCooldownTimer();
-      clearVerticalCooldownTimer();
-    };
   }, []);
 
   /* Unified keyboard handler — capture phase to intercept before page-level ESC */
