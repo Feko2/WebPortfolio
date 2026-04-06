@@ -341,7 +341,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     let lastWheelTs = 0;
     const threshold = 80;
     /** Min ms since previous wheel event to treat this event as a new swipe burst (not same inertia). */
-    const INTER_BURST_GAP_MS = 28;
+    const INTER_BURST_GAP_MS = 50;
     /** Silence after last wheel — full reset when stream ends. */
     const GESTURE_END_MS = 160;
 
