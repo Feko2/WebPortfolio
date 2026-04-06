@@ -9,7 +9,7 @@ All portfolio content is stored as typed TypeScript objects in `src/data/`. Ther
 | `skills.ts` | Skills | `skills: SkillCategory[]` | 8 skill categories with constellation data |
 | `projects.ts` | Items | `projects: Project[]` | 8 projects with stats and tech stack |
 | `locations.ts` | Map | `locations: Location[]`, `paths` | 4 locations with coordinates and path connections |
-| `resume.ts` | Magic | `spellSchools: SpellSchool[]` | 6 resume sections with 22 total entries |
+| `resume.ts` | Chronicle (West) | `parchmentSections: ParchmentSection[]` | Biographical CV with optional map/project link ids |
 
 ## How to Edit Content
 
@@ -77,29 +77,35 @@ Edit `src/data/locations.ts`. Add to `locations` array and optionally to `paths`
 ["existing-location-id", "new-location"]
 ```
 
-### Adding a New Resume Entry
+### Adding a Chronicle (parchment CV) entry
 
-Edit `src/data/resume.ts`. Add to an existing school's `entries` array, or add a new school:
+Edit `src/data/resume.ts`. Add to an existing section's `entries` array, or add a new `parchmentSections` object:
 
 ```typescript
-// New entry in existing school:
-{ id: "new1", name: "Entry Name", description: "What this is about", level: "Expert" }
-
-// New school:
+// New entry in an existing section:
 {
-  id: "new-school",
-  name: "Real Section Name",
-  skyrimName: "Mysticism",
-  icon: "🌀",
-  entries: [
-    { id: "m1", name: "Entry", description: "Description", level: "2024" },
+  id: "new-entry",
+  title: "Role or headline",
+  period: "City or date line",
+  body: "Narrative description.",
+  links: [
+    { label: "View on map — City", mapLocationId: "tec" }, // id from locations.ts
+    { label: "Project details", projectId: "ophnet" },      // id from projects.ts
   ],
+}
+
+// New section:
+{
+  id: "new-section",
+  title: "Section title",
+  subtitle: "Optional subtitle",
+  entries: [/* ... */],
 }
 ```
 
 ## Data Relationships
 
-The Conjuration school in resume.ts references projects that also exist in projects.ts. These are not formally linked (no foreign keys) — they're just thematically related. A future improvement could add `projectId` fields to cross-link them.
+Chronicle entries can reference **`locations.ts`** via `mapLocationId` and **`projects.ts`** via `projectId`. Those ids must match existing records so `SpellBook` navigation works.
 
 ## All Content is Placeholder
 

@@ -1,13 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { projects, Project } from "@/data/projects";
 import { ItemList } from "./ItemList";
 import { ProjectDetail } from "./ProjectDetail";
 import { InventoryBar } from "./InventoryBar";
 
-export function InventoryView() {
-  const [selectedProject, setSelectedProject] = useState<Project>(projects[0]);
+function resolveInitialProject(projectId: string | null | undefined): Project {
+  if (projectId) {
+    const match = projects.find((p) => p.id === projectId);
+    if (match) return match;
+  }
+  return projects[0];
+}
+
+export type InventoryViewProps = {
+  initialProjectId?: string | null;
+  onInitialProjectConsumed?: () => void;
+};
+
+export function InventoryView({
+  initialProjectId,
+  onInitialProjectConsumed,
+}: InventoryViewProps = {}) {
+  const [selectedProject, setSelectedProject] = useState<Project>(() =>
+    resolveInitialProject(initialProjectId)
+  );
+
+  useEffect(() => {
+    if (!initialProjectId) return;
+    const next = projects.find((p) => p.id === initialProjectId);
+    if (next) setSelectedProject(next);
+    onInitialProjectConsumed?.();
+  }, [initialProjectId, onInitialProjectConsumed]);
 
   return (
     <div className="w-full h-full flex flex-col">

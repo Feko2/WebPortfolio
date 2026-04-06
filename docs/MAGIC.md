@@ -1,125 +1,70 @@
-# Magic Section — CV / Resume (Spell Book)
+# Magic Section (West) — Chronicle / Parchment CV
 
-**Direction**: West (left)
-**Component**: `src/components/magic/SpellBook.tsx`
-**Data**: `src/data/resume.ts`
-**Background**: Dark (`#0a0a0a`)
+**Direction**: West (left)  
+**Component**: `src/components/magic/SpellBook.tsx`  
+**Data**: `src/data/resume.ts` (`parchmentSections`)  
+**Background**: Warm dark frame (`#1c1410`) behind a full-bleed parchment panel inside `SpellBook`
 
-This section recreates Skyrim's magic/spells menu as a CV/Resume viewer. Each "school of magic" maps to a resume section, and each "spell" is a resume line item.
+The West section is a **biographical CV on parchment**, not the Skyrim spell book. It highlights community work, recognition, and work/research, with actions that jump to the **Map** (focused marker) or **Items** (selected project).
 
-## Visual Reference
+## Layout
 
-Skyrim's magic menu shows:
-- A list of spell schools on the left (Destruction, Restoration, Alteration, etc.)
-- Each school has an icon and a list of known spells
-- Selecting a spell shows its details: name, description, cost, and effects
-- Spells can be "equipped" to hands
-- The interface has a dark, mystical aesthetic with subtle glow effects
+- **Outer**: `relative` container with parchment gradient, subtle noise texture, inset vignette
+- **Left column (~280px)**: “Chronicle” label, section navigation (three sections), **Download CV (PDF)** link
+- **Right column**: Scrollable entries for the active section — serif title, period line, body copy, link buttons
 
-## Current Implementation
+## Section navigation
 
-### Layout
-- Full-height flex layout with `pt-20 pb-16`
-- Left panel: 300px wide, contains spell school sidebar + CV download button
-- Right panel: flex-1, contains spell entries for the active school
-- Separated by `border-r border-foreground/6`
+| Section id | Title | Role |
+|------------|--------|------|
+| `community` | Community & outreach | Inclusion camp, SATEM, Quasar, Cosmonautas |
+| `recognition` | Recognition | Ikusi Velatia award |
+| `work-research` | Work & research | Oracle internship, OphNet |
 
-### Spell School Sidebar
-- Header: "Schools of Magic" in `.font-skyrim` at 10px
-- 6 school buttons, each showing:
-  - Emoji icon (left)
-  - Skyrim name in `.font-skyrim` (e.g., "DESTRUCTION")
-  - Real name below in smaller text (e.g., "Technical Skills")
-- Active state: left cyan border + subtle cyan background + `.text-glow-cyan`
-- Hover: slides 3px right via Framer Motion
-- Staggered entrance animation
+Active section: bordered “card” on parchment; inactive: transparent with hover tint.
 
-### CV Download Button
-- At bottom of sidebar, below an **SkyUI ornate divider** (`ornate-l.png` + horizontal rule + `ornate-r.png`, 14x14, 20% opacity)
-- Text: "Cast Spell (Download CV)"
-- Cyan-themed border and text
-- Hover: sweep gradient animation (translates from -100% to 100%)
-- Scale animation on hover (1.02) and tap (0.98)
-- **Not yet functional** — no actual PDF download wired up
-
-### Spell Entries (Right Panel)
-- School header: emoji + Skyrim name (2xl, `.text-glow-cyan`) + **SkyUI `dragon.png` icon** (22x22, 20% opacity) + real name below
-- **SkyUI ornate divider** below the school header (`ornate-l.png` + horizontal rule + `ornate-r.png`, 18x18, 20% opacity)
-- List of entries, each in a bordered card:
-  - Left accent bar: invisible by default, cyan on hover
-  - Entry name (14px, 65% opacity → 85% on hover)
-  - Level/date badge (9px, `.font-skyrim`, cyan, right-aligned)
-  - Description (11px, 30% opacity → 45% on hover)
-- Staggered entrance: fade + slide up, 0.06s delay per item
-- AnimatePresence with horizontal slide on school change
-
-## Data Schema
+## Data schema
 
 ```typescript
-interface SpellEntry {
-  id: string;
-  name: string;          // Resume line item name
-  description: string;   // Description of skill/experience/certification
-  level?: string;        // Proficiency level, date, or status label
+interface ParchmentLink {
+  label: string;
+  mapLocationId?: string;  // id from `src/data/locations.ts`
+  projectId?: string;      // id from `src/data/projects.ts`
 }
 
-interface SpellSchool {
+interface ParchmentEntry {
   id: string;
-  name: string;          // Real resume section name
-  skyrimName: string;    // Skyrim school name
-  icon: string;          // Emoji icon
-  entries: SpellEntry[]; // Resume items in this section
+  title: string;
+  body: string;
+  period?: string;
+  links?: ParchmentLink[];
+}
+
+interface ParchmentSection {
+  id: string;
+  title: string;
+  subtitle?: string;
+  entries: ParchmentEntry[];
 }
 ```
 
-### School Mapping
+## Cross-links
 
-| Skyrim School | Icon | Resume Section | Entry Count |
-|---------------|------|----------------|-------------|
-| Destruction | 🔥 | Technical Skills | 6 |
-| Restoration | ✨ | Education | 3 |
-| Alteration | 🔮 | Work Experience | 3 |
-| Conjuration | 👻 | Notable Projects | 3 |
-| Illusion | 👁️ | Soft Skills | 4 |
-| Enchanting | 💎 | Certifications | 3 |
+- **`mapLocationId`**: Parent (`page.tsx`) sets `mapFocusLocationId` and navigates to Map. `WorldMap` receives `focusLocationId`, selects the marker, zooms to `FOCUS_SCALE` (2.2), pans to center the marker, then calls `onFocusLocationConsumed` to clear intent.
+- **`projectId`**: Parent sets `itemsFocusProjectId` and navigates to Items. `InventoryView` selects the matching project in an effect and calls `onInitialProjectConsumed`.
 
-### Sample Entries (Destruction / Technical Skills)
+Entries without inventory projects (e.g. inclusion camp) only expose map links (typically `tec` for Monterrey).
 
-| Name | Level | Description |
-|------|-------|-------------|
-| React & Next.js | Expert | Component architecture, hooks, SSR, and modern UI development |
-| TypeScript | Expert | Type-safe development with interfaces, generics, and utility types |
-| Python | Advanced | Backend development, data analysis, and automation scripting |
-| Node.js & Express | Advanced | Server-side development, REST APIs, and microservices |
-| CSS & Tailwind | Expert | Responsive design, animations, and modern styling frameworks |
-| SQL & NoSQL | Intermediate | PostgreSQL, MongoDB, Redis — data modeling and optimization |
+## CV download
 
-## What Needs Work
+Static file: `public/felipe-ramos-cv-en.pdf` — linked as “Download CV (PDF)” with a `download` attribute.
 
-### Visual Fidelity
-- The emoji icons should be replaced with custom SVG icons matching Skyrim's spell school symbols (fire for Destruction, healing hands for Restoration, etc.).
-- The spell entries are plain cards — could add more mystical styling (parchment texture, rune borders, arcane symbols).
-- Missing the spell "casting" visual effect when hovering entries.
-- The school icons in Skyrim have a distinctive glow — the emoji approach doesn't capture this.
+## Top bar
 
-### Functionality
-- **CV Download**: The "Cast Spell" button needs to actually trigger a PDF download. Options:
-  - Generate PDF client-side from the resume data (using a library like `jspdf` or `react-pdf`)
-  - Link to a pre-built PDF file in `/public/`
-  - Use a print-to-PDF approach with a hidden printable resume layout
-- **Spell equipping**: Could add a "favorites" or "equipped spells" concept — highlighted skills that appear on the main menu.
+`TopBar` displays the label **Chronicle** when `currentSection === "magic"` (see `sectionLabels` in `TopBar.tsx`).
 
-### Interaction
-- No keyboard navigation between schools.
-- Entries could expand on click to show more details.
-- The Conjuration (Notable Projects) school should cross-link to the Items section — clicking a project spell should navigate to that project in the inventory.
+## What could be improved later
 
-### Animation
-- School transitions are a simple horizontal slide — could add a page-turn or magical swirl effect.
-- Entries could have a "reveal" animation like text appearing on a scroll.
-- The download button's sweep effect is nice but could be more dramatic (particle burst on click).
-
-### Data
-- All entries are placeholder content — needs real resume data.
-- Level labels are inconsistent (some use proficiency like "Expert", others use dates like "2023").
-- Consider adding more granular data: links, tags, or sub-entries.
+- Optional serif webfont to match the parchment tone (currently Tailwind `font-serif` / system stack)
+- Richer paper edges (torn border asset) without hurting performance
+- Keyboard focus styles on section tabs and link buttons

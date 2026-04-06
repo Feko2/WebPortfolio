@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { locations, paths, Location } from "@/data/locations";
@@ -28,8 +28,18 @@ const MIN_SCALE = 1;
 const MAX_SCALE = 3;
 /** Opens slightly zoomed so Mexico fills more of the frame; user can scroll/pinch to adjust. */
 const INITIAL_SCALE = 1.5;
+const FOCUS_SCALE = 2.2;
 
-export function WorldMap() {
+export type WorldMapProps = {
+  /** When set (e.g. from the Chronicle), selects this marker and pans to center it */
+  focusLocationId?: string | null;
+  onFocusLocationConsumed?: () => void;
+};
+
+export function WorldMap({
+  focusLocationId,
+  onFocusLocationConsumed,
+}: WorldMapProps = {}) {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
@@ -153,6 +163,34 @@ export function WorldMap() {
   useEffect(() => {
     setPan((p) => clampPan(p.x, p.y, scale));
   }, [scale, clampPan]);
+
+  useLayoutEffect(() => {
+    if (!focusLocationId) return;
+    const loc = locations.find((l) => l.id === focusLocationId);
+    if (!loc) {
+      onFocusLocationConsumed?.();
+      return;
+    }
+
+    const apply = () => {
+      const el = containerRef.current;
+      if (!el || el.clientWidth === 0) {
+        requestAnimationFrame(apply);
+        return;
+      }
+      const cw = el.clientWidth;
+      const ch = el.clientHeight;
+      const s = FOCUS_SCALE;
+      setScale(s);
+      setSelectedLocation(loc);
+      const panX = -s * cw * (loc.x / 100 - 0.5);
+      const panY = -s * ch * (loc.y / 100 - 0.5);
+      setPan(clampPan(panX, panY, s));
+      onFocusLocationConsumed?.();
+    };
+
+    apply();
+  }, [focusLocationId, clampPan, onFocusLocationConsumed]);
 
   return (
     <div className="w-full h-full flex items-center justify-center overflow-hidden relative">

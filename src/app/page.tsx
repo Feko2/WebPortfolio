@@ -21,7 +21,7 @@ const sectionBackgrounds: Record<Section, string> = {
   skills: "nebula-bg",
   items: "bg-[#0a0a0a]",
   map: "bg-[#0a0a0a]",
-  magic: "bg-[#0a0a0a]",
+  magic: "bg-[#1c1410]",
 };
 
 const slideDirections: Record<Section, { x: number; y: number }> = {
@@ -33,6 +33,8 @@ const slideDirections: Record<Section, { x: number; y: number }> = {
 
 export default function Home() {
   const [currentSection, setCurrentSection] = useState<Section | null>(null);
+  const [mapFocusLocationId, setMapFocusLocationId] = useState<string | null>(null);
+  const [itemsFocusProjectId, setItemsFocusProjectId] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const { muted, toggleMute, playSound, initAudio, startAmbient, initialized } = useAudio();
 
@@ -57,6 +59,30 @@ export default function Home() {
     if (initialized) playSound("close");
     setCurrentSection(null);
   }, [initialized, playSound]);
+
+  const consumeMapFocus = useCallback(() => {
+    setMapFocusLocationId(null);
+  }, []);
+
+  const consumeItemsFocus = useCallback(() => {
+    setItemsFocusProjectId(null);
+  }, []);
+
+  const openMapWithLocation = useCallback(
+    (locationId: string) => {
+      setMapFocusLocationId(locationId);
+      handleNavigate("map");
+    },
+    [handleNavigate]
+  );
+
+  const openItemsWithProject = useCallback(
+    (projectId: string) => {
+      setItemsFocusProjectId(projectId);
+      handleNavigate("items");
+    },
+    [handleNavigate]
+  );
 
   useKeyboard(handleBack, currentSection);
 
@@ -179,9 +205,21 @@ export default function Home() {
             className={`absolute inset-0 z-20 ${sectionBackgrounds[currentSection]}`}
           >
             {currentSection === "skills" && <ConstellationView onBack={handleBack} />}
-            {currentSection === "items" && <InventoryView />}
-            {currentSection === "map" && <WorldMap />}
-            {currentSection === "magic" && <SpellBook />}
+            {currentSection === "items" && (
+              <InventoryView
+                initialProjectId={itemsFocusProjectId}
+                onInitialProjectConsumed={consumeItemsFocus}
+              />
+            )}
+            {currentSection === "map" && (
+              <WorldMap
+                focusLocationId={mapFocusLocationId}
+                onFocusLocationConsumed={consumeMapFocus}
+              />
+            )}
+            {currentSection === "magic" && (
+              <SpellBook onOpenMap={openMapWithLocation} onOpenItems={openItemsWithProject} />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
