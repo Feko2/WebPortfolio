@@ -292,6 +292,9 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
   const scrollCooldown = useRef(false);
+  /** One horizontal wheel gesture → at most one skill change (trackpad momentum fires many events). */
+  const horizontalWheelConsumedRef = useRef(false);
+  const wheelGestureIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [spacing, setSpacing] = useState(550);
 
@@ -337,27 +340,43 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   useEffect(() => {
     let accumulatedX = 0;
     let accumulatedY = 0;
-    let decayTimer: ReturnType<typeof setTimeout> | null = null;
     const threshold = 80;
+    const gestureIdleMs = 280;
+
+    const scheduleWheelGestureEnd = () => {
+      if (wheelGestureIdleTimerRef.current) clearTimeout(wheelGestureIdleTimerRef.current);
+      wheelGestureIdleTimerRef.current = setTimeout(() => {
+        horizontalWheelConsumedRef.current = false;
+        accumulatedX = 0;
+        accumulatedY = 0;
+      }, gestureIdleMs);
+    };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (scrollCooldown.current || focusedNode !== null) return;
+      scheduleWheelGestureEnd();
+      if (focusedNode !== null) return;
+      if (scrollCooldown.current) return;
 
-      accumulatedX += e.deltaX;
-      accumulatedY += e.deltaY;
+      if (!horizontalWheelConsumedRef.current) {
+        accumulatedX += e.deltaX;
+        accumulatedY += e.deltaY;
+      } else {
+        accumulatedY += e.deltaY;
+      }
 
-      if (decayTimer) clearTimeout(decayTimer);
-      decayTimer = setTimeout(() => {
-        accumulatedX = 0;
-        accumulatedY = 0;
-      }, 200);
-
-      if (Math.abs(accumulatedX) >= threshold && Math.abs(accumulatedX) > Math.abs(accumulatedY)) {
+      if (
+        Math.abs(accumulatedX) >= threshold &&
+        Math.abs(accumulatedX) > Math.abs(accumulatedY)
+      ) {
+        horizontalWheelConsumedRef.current = true;
         navigate(accumulatedX > 0 ? 1 : -1);
         accumulatedX = 0;
         accumulatedY = 0;
-      } else if (accumulatedY <= -threshold && Math.abs(accumulatedY) > Math.abs(accumulatedX)) {
+      } else if (
+        accumulatedY <= -threshold &&
+        Math.abs(accumulatedY) > Math.abs(accumulatedX)
+      ) {
         enterFocused();
         accumulatedX = 0;
         accumulatedY = 0;
@@ -366,7 +385,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      if (decayTimer) clearTimeout(decayTimer);
+      if (wheelGestureIdleTimerRef.current) clearTimeout(wheelGestureIdleTimerRef.current);
     };
   }, [navigate, focusedNode, enterFocused]);
 
