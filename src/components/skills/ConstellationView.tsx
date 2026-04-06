@@ -298,8 +298,10 @@ const ConstellationSVG = memo(function ConstellationSVG({
 export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
-  /** True until trackpad/mouse wheel inertia ends — one carousel step per gesture, not per delta sum. */
-  const carouselWheelGestureLock = useRef(false);
+  /** After a horizontal carousel step, ignore repeat horizontal until wheel silence (same as one arrow). */
+  const carouselHorizontalWheelLock = useRef(false);
+  /** After wheel-triggered enter-focus, brief lock until silence (avoids double-enter before state updates). */
+  const carouselVerticalWheelLock = useRef(false);
   /** Wheel handler reads this so routing updates immediately when exiting focus mid-gesture. */
   const focusedNodeRef = useRef<number | null>(null);
 
@@ -353,14 +355,14 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   /** Unlock carousel wheel only when leaving focused mode — not on every activeIndex change. */
   useEffect(() => {
     if (focusedNode === null) {
-      carouselWheelGestureLock.current = false;
+      carouselHorizontalWheelLock.current = false;
+      carouselVerticalWheelLock.current = false;
     }
   }, [focusedNode]);
 
   /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
-   * Listener is mounted once (refs hold latest callbacks). If this effect re-ran on every
-   * activeIndex change, enterFocused’s identity would change, cleanup would clear the lock and
-   * silence timer — one trackpad swipe would advance the carousel many times. */
+   * Horizontal and vertical use separate locks so a horizontal swipe does not block scrolling up
+   * to enter focus (unlike a single shared lock). Listener is mounted once (refs hold callbacks). */
   useEffect(() => {
     let accumulatedX = 0;
     let accumulatedY = 0;
@@ -368,19 +370,20 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     let focusAccumY = 0;
     let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
     /**
-     * Small threshold so the carousel responds quickly; further horizontal delta in the same gesture
-     * is ignored until silence (carouselWheelGestureLock). Line-mode wheels normalized to pixels.
+     * Small threshold so the carousel responds quickly; further horizontal delta in the same inertia
+     * stream is ignored until silence (horizontal lock only).
      */
     const HORIZONTAL_COMMIT_THRESHOLD = 36;
     /** Vertical scroll accumulated for enter focus / exit focus. */
     const VERTICAL_WHEEL_THRESHOLD = 90;
-    /** No wheel events for this long ends the gesture and allows another carousel step. */
-    const GESTURE_END_MS = 180;
+    /** Shorter silence so successive swipes feel closer to repeated arrow keys. */
+    const GESTURE_END_MS = 120;
 
     const scheduleGestureEnd = () => {
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
       gestureEndTimer = setTimeout(() => {
-        carouselWheelGestureLock.current = false;
+        carouselHorizontalWheelLock.current = false;
+        carouselVerticalWheelLock.current = false;
         accumulatedX = 0;
         accumulatedY = 0;
         focusAccumX = 0;
@@ -417,7 +420,8 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
           focusAccumY > Math.abs(focusAccumX)
         ) {
           focusedNodeRef.current = null;
-          carouselWheelGestureLock.current = false;
+          carouselHorizontalWheelLock.current = false;
+          carouselVerticalWheelLock.current = false;
           focusAccumX = 0;
           focusAccumY = 0;
           exitFocusedRef.current();
@@ -425,30 +429,30 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         return;
       }
 
-      if (carouselWheelGestureLock.current) return;
-
       accumulatedX += dx;
       accumulatedY += dy;
 
       if (
+        !carouselHorizontalWheelLock.current &&
         Math.abs(accumulatedX) >= HORIZONTAL_COMMIT_THRESHOLD &&
         Math.abs(accumulatedX) > Math.abs(accumulatedY)
       ) {
         navigateRef.current(accumulatedX > 0 ? 1 : -1);
-        carouselWheelGestureLock.current = true;
+        carouselHorizontalWheelLock.current = true;
         accumulatedX = 0;
-        accumulatedY = 0;
         return;
       }
 
       if (
+        !carouselVerticalWheelLock.current &&
         accumulatedY <= -VERTICAL_WHEEL_THRESHOLD &&
         Math.abs(accumulatedY) > Math.abs(accumulatedX)
       ) {
         enterFocusedRef.current();
+        carouselHorizontalWheelLock.current = true;
+        carouselVerticalWheelLock.current = true;
         accumulatedX = 0;
         accumulatedY = 0;
-        carouselWheelGestureLock.current = true;
       }
     };
     window.addEventListener("wheel", handleWheel, { passive: false });
