@@ -10,6 +10,7 @@ The West section is a **biographical CV on parchment**, not the Skyrim spell boo
 ## Layout
 
 - **Outer**: `relative` container with parchment gradient, subtle noise texture, inset vignette
+- **Top inset**: A fixed `h-20` (80px) spacer clears the global `TopBar` (fixed, `z-50`) so sidebar and entries never sit under it
 - **Left column (~280px)**: “Chronicle” label, section navigation (three sections), **Download CV (PDF)** link
 - **Right column**: Scrollable entries for the active section — serif title, period line, body copy, link buttons
 
@@ -61,7 +62,7 @@ Static file: `public/felipe-ramos-cv-en.pdf` — linked as “Download CV (PDF)�
 
 ## Top bar
 
-`TopBar` displays the label **Chronicle** when `currentSection === "magic"` (see `sectionLabels` in `TopBar.tsx`). It is `position: fixed`, so `SpellBook` reserves a **56px** top spacer (same pattern as `InventoryView`) so parchment content does not sit under the bar.
+`TopBar` displays the label **Chronicle** when `currentSection === "magic"` (see `sectionLabels` in `TopBar.tsx`). The bar is `fixed` at the top of the viewport; `WideTopBar` in `SkyFrame.tsx` uses a **solid black** fill so parchment content does not show through. Chronicle layout reserves vertical space under it via the spacer above.
 
 ## What could be improved later
 

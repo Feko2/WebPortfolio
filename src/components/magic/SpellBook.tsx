@@ -66,8 +66,8 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
         aria-hidden
       />
 
-      {/* Spacer to clear the fixed TopBar (same height as InventoryView) */}
-      <div className="relative z-10 shrink-0 h-[56px]" aria-hidden />
+      {/* Clears fixed TopBar (~42px) with comfortable gap below */}
+      <div className="relative z-10 shrink-0 h-20" aria-hidden />
 
       <div className="relative z-10 flex flex-1 min-h-0 w-full pb-16">
         {/* Section navigation */}

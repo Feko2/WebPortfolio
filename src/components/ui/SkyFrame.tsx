@@ -124,7 +124,7 @@ export function WideTopBar({
   return (
     <div className={`relative w-full h-[42px] ${className}`}>
       {/* Background fill */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black" />
 
       {/* Top edge line with gradient fade */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/[0.12] to-transparent" />
