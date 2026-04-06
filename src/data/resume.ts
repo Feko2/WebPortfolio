@@ -4,8 +4,8 @@
  */
 
 export interface ParchmentLink {
-  /** Inline link label (map / project actions appear beside `period`) */
-  label: string;
+  /** Shown for inventory links; map-only entries use the entry `period` text instead */
+  label?: string;
   /** When set, navigates to Map and focuses this location id */
   mapLocationId?: string;
   /** When set, navigates to Items and selects this project id */
@@ -39,7 +39,7 @@ export const parchmentSections: ParchmentSection[] = [
         period: "Monterrey",
         body:
           "Served as staff and handler at an inclusion camp for children and adults with intellectual disabilities and autism, supporting participants through activities and ensuring a safe, welcoming environment.",
-        links: [{ label: "View on map — Monterrey (Tec)", mapLocationId: "tec" }],
+        links: [{ mapLocationId: "tec" }],
       },
       {
         id: "satem",
@@ -47,7 +47,7 @@ export const parchmentSections: ParchmentSection[] = [
         period: "Tec de Monterrey · Astronomical Society",
         body:
           "Vice president of SATEM, Tec de Monterrey’s astronomical society, leading marketing and event organization for talks, observations, and society initiatives.",
-        links: [{ label: "View on map — Monterrey (Tec)", mapLocationId: "tec" }],
+        links: [{ mapLocationId: "tec" }],
       },
       {
         id: "quasar",
@@ -55,7 +55,7 @@ export const parchmentSections: ParchmentSection[] = [
         period: "Tec de Monterrey",
         body:
           "Published in Quasar, the largest scientific journal at Tecnológico de Monterrey, contributing to peer-facing science communication on campus.",
-        links: [{ label: "View on map — Monterrey (Tec)", mapLocationId: "tec" }],
+        links: [{ mapLocationId: "tec" }],
       },
       {
         id: "cosmonautas",
@@ -63,7 +63,7 @@ export const parchmentSections: ParchmentSection[] = [
         period: "Elementary & middle school · Monterrey",
         body:
           "Prepared and delivered astronomy and physics lessons for the Cosmonautas program, introducing scientific ideas to elementary and middle school students. Work tied to SATEM’s outreach mission in Monterrey.",
-        links: [{ label: "View on map — Monterrey (Tec)", mapLocationId: "tec" }],
+        links: [{ mapLocationId: "tec" }],
       },
     ],
   },
@@ -78,7 +78,7 @@ export const parchmentSections: ParchmentSection[] = [
         period: "Monterrey",
         body:
           "Recognized by Ikusi Velatia for creating the best-built network infrastructure for a mid-sized company — enterprise-grade design and implementation.",
-        links: [{ label: "View on map — Monterrey (Tec)", mapLocationId: "tec" }],
+        links: [{ mapLocationId: "tec" }],
       },
     ],
   },
@@ -94,7 +94,7 @@ export const parchmentSections: ParchmentSection[] = [
         body:
           "Software internship at Oracle: architecture and delivery for internal tooling — ticket automation, ORDS REST APIs, and Oracle APEX dashboards.",
         links: [
-          { label: "View on map — Zapopan (Oracle)", mapLocationId: "oracle" },
+          { mapLocationId: "oracle" },
           { label: "Project details — Ticket Forge", projectId: "oracle-mvp" },
         ],
       },
@@ -105,8 +105,8 @@ export const parchmentSections: ParchmentSection[] = [
         body:
           "Research on a computer vision–based glaucoma detection framework: clinical data pipelines and deployment collaboration between CDMX and Mérida.",
         links: [
-          { label: "View on map — CDMX (lab)", mapLocationId: "ophnet" },
-          { label: "View on map — Mérida (clinic)", mapLocationId: "ophnet-merida" },
+          { mapLocationId: "ophnet" },
+          { mapLocationId: "ophnet-merida" },
           { label: "Project details — OphNet", projectId: "ophnet" },
         ],
       },

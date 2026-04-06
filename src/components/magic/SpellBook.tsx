@@ -2,49 +2,26 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  parchmentSections,
-  ParchmentSection,
-  ParchmentLink,
-  type ParchmentEntry,
-} from "@/data/resume";
+import { parchmentSections, ParchmentSection, ParchmentEntry } from "@/data/resume";
+import { locations } from "@/data/locations";
 
 export type SpellBookProps = {
   onOpenMap: (locationId: string) => void;
   onOpenItems: (projectId: string) => void;
 };
 
-function ParchmentInlineLink({
-  link,
-  onOpenMap,
-  onOpenItems,
-}: {
-  link: ParchmentLink;
-  onOpenMap: (locationId: string) => void;
-  onOpenItems: (projectId: string) => void;
-}) {
-  const handleClick = () => {
-    if (link.mapLocationId) onOpenMap(link.mapLocationId);
-    else if (link.projectId) onOpenItems(link.projectId);
-  };
+const metaLinkClass =
+  "text-xs tracking-wide text-[rgba(75,48,18,0.55)] hover:text-[rgba(45,28,8,0.88)] " +
+  "underline decoration-[rgba(75,48,18,0.3)] decoration-from-font underline-offset-[3px] " +
+  "hover:decoration-[rgba(45,28,8,0.55)] bg-transparent border-none p-0 m-0 " +
+  "cursor-pointer font-inherit align-baseline text-left";
 
-  if (!link.mapLocationId && !link.projectId) return null;
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="inline p-0 m-0 align-baseline bg-transparent border-0 cursor-pointer
-        text-xs tracking-wide text-[rgba(75,48,18,0.62)] underline underline-offset-[3px]
-        decoration-[rgba(90,55,20,0.4)] hover:text-[rgba(28,16,4,0.9)]
-        hover:decoration-[rgba(28,16,4,0.55)] transition-colors text-left font-sans"
-    >
-      {link.label}
-    </button>
-  );
+function mapLinkCaption(locationId: string): string {
+  const loc = locations.find((l) => l.id === locationId);
+  return loc?.city ?? loc?.name ?? locationId;
 }
 
-function EntryLocationLine({
+function EntryMetaLine({
   entry,
   onOpenMap,
   onOpenItems,
@@ -53,28 +30,111 @@ function EntryLocationLine({
   onOpenMap: (locationId: string) => void;
   onOpenItems: (projectId: string) => void;
 }) {
-  const links =
-    entry.links?.filter((l) => l.mapLocationId || l.projectId) ?? [];
-  if (!entry.period && links.length === 0) return null;
+  const mapLinks =
+    entry.links?.filter((l): l is typeof l & { mapLocationId: string } => Boolean(l.mapLocationId)) ??
+    [];
+  const projectLinks =
+    entry.links?.filter((l): l is typeof l & { projectId: string } => Boolean(l.projectId)) ?? [];
+
+  const period = entry.period;
+
+  const renderPeriodAndMap = () => {
+    if (!period) {
+      if (mapLinks.length === 0) return null;
+      return (
+        <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+          {mapLinks.map((l, i) => (
+            <span key={l.mapLocationId} className="contents">
+              {i > 0 && <span className="text-[rgba(75,48,18,0.35)]">·</span>}
+              <button
+                type="button"
+                className={metaLinkClass}
+                onClick={() => onOpenMap(l.mapLocationId)}
+              >
+                {mapLinkCaption(l.mapLocationId)}
+              </button>
+            </span>
+          ))}
+        </span>
+      );
+    }
+
+    if (mapLinks.length === 0) {
+      return (
+        <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)]">{period}</span>
+      );
+    }
+
+    if (mapLinks.length === 1) {
+      return (
+        <button type="button" className={metaLinkClass} onClick={() => onOpenMap(mapLinks[0].mapLocationId)}>
+          {period}
+        </button>
+      );
+    }
+
+    const parts = period.split(/\s*·\s*/);
+    if (parts.length === mapLinks.length) {
+      return (
+        <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-xs tracking-wide text-[rgba(75,48,18,0.55)]">
+          {parts.map((part, i) => (
+            <span key={`${entry.id}-map-${mapLinks[i].mapLocationId}`} className="contents">
+              {i > 0 && <span className="text-[rgba(75,48,18,0.35)]">·</span>}
+              <button
+                type="button"
+                className={metaLinkClass}
+                onClick={() => onOpenMap(mapLinks[i].mapLocationId)}
+              >
+                {part.trim()}
+              </button>
+            </span>
+          ))}
+        </span>
+      );
+    }
+
+    return (
+      <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+        <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)]">{period}</span>
+        {mapLinks.map((l) => (
+          <button
+            key={l.mapLocationId}
+            type="button"
+            className={metaLinkClass}
+            onClick={() => onOpenMap(l.mapLocationId)}
+          >
+            {mapLinkCaption(l.mapLocationId)}
+          </button>
+        ))}
+      </span>
+    );
+  };
+
+  const mapBlock = renderPeriodAndMap();
+
+  if (!mapBlock && projectLinks.length === 0) return null;
 
   return (
-    <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)] leading-relaxed max-w-xl">
-      {entry.period}
-      {links.map((link, li) => (
-        <span key={`${entry.id}-${link.label}-${li}`}>
-          {(entry.period || li > 0) && (
-            <span className="mx-1.5 text-[rgba(75,48,18,0.38)]" aria-hidden>
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      {mapBlock}
+      {mapBlock && projectLinks.length > 0 && (
+        <span className="text-[rgba(75,48,18,0.35)] select-none" aria-hidden>
+          ·
+        </span>
+      )}
+      {projectLinks.map((l, i) => (
+        <span key={l.projectId} className="contents">
+          {i > 0 && (
+            <span className="text-[rgba(75,48,18,0.35)] select-none" aria-hidden>
               ·
             </span>
           )}
-          <ParchmentInlineLink
-            link={link}
-            onOpenMap={onOpenMap}
-            onOpenItems={onOpenItems}
-          />
+          <button type="button" className={metaLinkClass} onClick={() => onOpenItems(l.projectId)}>
+            {l.label ?? "Project"}
+          </button>
         </span>
       ))}
-    </span>
+    </div>
   );
 }
 
@@ -105,7 +165,7 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
       <div className="relative z-10 flex flex-1 min-h-0 w-full pb-16">
         {/* Section navigation */}
         <aside
-          className="w-[min(280px,32vw)] shrink-0 flex flex-col pl-8 pr-6 border-r border-[rgba(60,35,12,0.18)]"
+          className="w-[min(280px,32vw)] shrink-0 flex flex-col pl-8 pr-5 border-r border-[rgba(60,35,12,0.18)]"
         >
           <p
             className="font-skyrim text-[9px] tracking-[0.35em] uppercase mb-6"
@@ -170,7 +230,7 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
 
         {/* Entries */}
         <div
-          className="flex-1 min-w-0 pl-10 lg:pl-16 pr-8 lg:pr-12 overflow-y-auto"
+          className="flex-1 min-w-0 pl-10 pr-8 lg:pl-16 lg:pr-12 overflow-y-auto"
           style={{
             color: "rgba(40, 22, 6, 0.82)",
           }}
@@ -203,15 +263,11 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
                     transition={{ delay: 0.06 + i * 0.05 }}
                     className="pl-0"
                   >
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5 mb-2">
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
                       <h2 className="font-serif text-lg font-semibold text-[rgba(28,16,4,0.92)]">
                         {entry.title}
                       </h2>
-                      <EntryLocationLine
-                        entry={entry}
-                        onOpenMap={onOpenMap}
-                        onOpenItems={onOpenItems}
-                      />
+                      <EntryMetaLine entry={entry} onOpenMap={onOpenMap} onOpenItems={onOpenItems} />
                     </div>
                     <p className="text-[13px] leading-relaxed text-[rgba(45,28,10,0.78)] max-w-2xl">
                       {entry.body}

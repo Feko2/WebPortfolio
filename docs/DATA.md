@@ -89,8 +89,8 @@ Edit `src/data/resume.ts`. Add to an existing section's `entries` array, or add 
   period: "City or date line",
   body: "Narrative description.",
   links: [
-    { label: "View on map — City", mapLocationId: "tec" }, // id from locations.ts
-    { label: "Project details", projectId: "ophnet" },      // id from projects.ts
+    { mapLocationId: "tec" }, // opens Map; link text is `period` above
+    { label: "Project details", projectId: "ophnet" }, // optional Items link (label shown)
   ],
 }
 

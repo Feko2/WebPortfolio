@@ -12,7 +12,7 @@ The West section is a **biographical CV on parchment**, not the Skyrim spell boo
 - **Outer**: `relative` container with parchment gradient, subtle noise texture, inset vignette
 - **Top inset**: A fixed `h-20` (80px) spacer clears the global `TopBar` (fixed, `z-50`) so sidebar and entries never sit under it
 - **Left column (~280px)**: “Chronicle” label, section navigation (three sections), **Download CV (PDF)** link
-- **Right column**: Scrollable entries for the active section — serif title, period line, body copy, link buttons
+- **Right column**: Scrollable entries — serif title, meta line (period / location text as underlined links to Map when `mapLocationId` is set; optional project text links to Items), body copy
 
 ## Section navigation
 
@@ -28,7 +28,7 @@ Active section: bordered “card” on parchment; inactive: transparent with hov
 
 ```typescript
 interface ParchmentLink {
-  label: string;
+  label?: string;          // used for Items links; map-only rows use entry `period` as the link text
   mapLocationId?: string;  // id from `src/data/locations.ts`
   projectId?: string;      // id from `src/data/projects.ts`
 }
@@ -68,4 +68,4 @@ Static file: `public/felipe-ramos-cv-en.pdf` — linked as “Download CV (PDF)�
 
 - Optional serif webfont to match the parchment tone (currently Tailwind `font-serif` / system stack)
 - Richer paper edges (torn border asset) without hurting performance
-- Keyboard focus styles on section tabs and link buttons
+- Keyboard focus styles on section tabs and meta-line links
