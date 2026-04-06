@@ -341,7 +341,8 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
    * so it stays one step per continuous motion; quick repeated swipes have a larger gap and each
    * unlocks cleanly. Silence timer resets state if the user stops entirely.
    * lastWheelTsRef persists across effect re-runs; first event after silence uses infinite gap so
-   * inter-burst logic clears a stale carouselWheelGestureLock (e.g. after wheel-up entered focus). */
+   * inter-burst logic clears a stale carouselWheelGestureLock (e.g. after wheel-up entered focus).
+   * Carousel horizontal uses a higher delta threshold than vertical (enter/exit focus). */
   useEffect(() => {
     if (focusedNode === null) {
       carouselWheelGestureLock.current = false;
@@ -352,11 +353,17 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     let focusAccumX = 0;
     let focusAccumY = 0;
     let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
-    const threshold = 80;
-    /** Min ms since previous wheel event to treat this event as a new swipe burst (not same inertia). */
-    const INTER_BURST_GAP_MS = 50;
+    /** Horizontal scroll needed for one carousel step (trackpad deltas add up quickly). */
+    const CAROUSEL_HORIZONTAL_THRESHOLD = 320;
+    /** Vertical scroll for enter focus / exit focus — separate from horizontal so carousel isn’t hair-trigger. */
+    const VERTICAL_WHEEL_THRESHOLD = 100;
+    /**
+     * Min ms since previous wheel event to treat as a new burst. 50ms was too low: occasional gaps between
+     * inertia frames cleared the carousel lock and fired extra navigations in one physical swipe.
+     */
+    const INTER_BURST_GAP_MS = 140;
     /** Silence after last wheel — full reset when stream ends. */
-    const GESTURE_END_MS = 160;
+    const GESTURE_END_MS = 200;
 
     const scheduleGestureEnd = () => {
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
@@ -395,7 +402,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         focusAccumY += e.deltaY;
 
         if (
-          focusAccumY >= threshold &&
+          focusAccumY >= VERTICAL_WHEEL_THRESHOLD &&
           focusAccumY > Math.abs(focusAccumX)
         ) {
           focusedNodeRef.current = null;
@@ -412,12 +419,18 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
       accumulatedX += e.deltaX;
       accumulatedY += e.deltaY;
 
-      if (Math.abs(accumulatedX) >= threshold && Math.abs(accumulatedX) > Math.abs(accumulatedY)) {
+      if (
+        Math.abs(accumulatedX) >= CAROUSEL_HORIZONTAL_THRESHOLD &&
+        Math.abs(accumulatedX) > Math.abs(accumulatedY)
+      ) {
         navigate(accumulatedX > 0 ? 1 : -1);
         accumulatedX = 0;
         accumulatedY = 0;
         carouselWheelGestureLock.current = true;
-      } else if (accumulatedY <= -threshold && Math.abs(accumulatedY) > Math.abs(accumulatedX)) {
+      } else if (
+        accumulatedY <= -VERTICAL_WHEEL_THRESHOLD &&
+        Math.abs(accumulatedY) > Math.abs(accumulatedX)
+      ) {
         enterFocused();
         accumulatedX = 0;
         accumulatedY = 0;
