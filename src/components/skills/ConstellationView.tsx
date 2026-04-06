@@ -330,20 +330,30 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   }, []);
 
   /* Wheel — horizontal = carousel, vertical up = enter focused mode.
-   * Gesture lock: after one step, ignore further deltas until wheel stream stops (inertia ended).
-   * Avoids a time cooldown between separate swipes — only the tail of the same gesture is suppressed. */
+   * One step per physical swipe: after navigating, stay locked through inertia.
+   * Unlock when (a) wheel goes quiet, or (b) inertia tail (small horiz deltas) then a new strong
+   * horizontal impulse — so repeated swipes chain without waiting for full inertia to stop. */
   useEffect(() => {
     let accumulatedX = 0;
     let accumulatedY = 0;
     let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
+    /** Count of consecutive small horizontal-dominant deltas while locked (inertia dying). */
+    let consecutiveSmallHoriz = 0;
     const threshold = 80;
-    /** Silence after last wheel event before treating the next swipe as a new gesture. */
-    const GESTURE_END_MS = 200;
+    /** Max |deltaX| treated as "tail" vs fresh swipe impulse. */
+    const REST_DELTA_X = 12;
+    /** Min |deltaX| on a horizontal-dominant event to count as starting a new swipe after tail. */
+    const NEW_SWIPE_DELTA_X = 32;
+    /** Small horiz events in a row before a strong one can open the next gesture. */
+    const TAIL_STREAK = 3;
+    /** Silence after last wheel — fallback if tail pattern never appears. */
+    const GESTURE_END_MS = 160;
 
     const scheduleGestureEnd = () => {
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
       gestureEndTimer = setTimeout(() => {
         carouselWheelGestureLock.current = false;
+        consecutiveSmallHoriz = 0;
         accumulatedX = 0;
         accumulatedY = 0;
         gestureEndTimer = null;
@@ -356,7 +366,28 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
 
       scheduleGestureEnd();
 
-      if (carouselWheelGestureLock.current) return;
+      if (carouselWheelGestureLock.current) {
+        const ax = Math.abs(e.deltaX);
+        const ay = Math.abs(e.deltaY);
+        const horizDominant = ax > ay;
+
+        if (
+          horizDominant &&
+          ax >= NEW_SWIPE_DELTA_X &&
+          consecutiveSmallHoriz >= TAIL_STREAK
+        ) {
+          carouselWheelGestureLock.current = false;
+          consecutiveSmallHoriz = 0;
+          // Fall through: apply this event toward the next step (keep gesture-end timer from above).
+        } else {
+          if (horizDominant && ax < REST_DELTA_X) {
+            consecutiveSmallHoriz++;
+          } else {
+            consecutiveSmallHoriz = 0;
+          }
+          return;
+        }
+      }
 
       accumulatedX += e.deltaX;
       accumulatedY += e.deltaY;
@@ -365,11 +396,13 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         navigate(accumulatedX > 0 ? 1 : -1);
         accumulatedX = 0;
         accumulatedY = 0;
+        consecutiveSmallHoriz = 0;
         carouselWheelGestureLock.current = true;
       } else if (accumulatedY <= -threshold && Math.abs(accumulatedY) > Math.abs(accumulatedX)) {
         enterFocused();
         accumulatedX = 0;
         accumulatedY = 0;
+        consecutiveSmallHoriz = 0;
         carouselWheelGestureLock.current = true;
       }
     };
