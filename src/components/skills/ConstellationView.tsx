@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, memo } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  memo,
+} from "react";
 import { motion } from "framer-motion";
 import { skills, SkillCategory, SkillNode } from "@/data/skills";
 
@@ -295,7 +302,6 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const carouselWheelGestureLock = useRef(false);
   /** Wheel handler reads this so routing updates immediately when exiting focus mid-gesture. */
   const focusedNodeRef = useRef<number | null>(null);
-  focusedNodeRef.current = focusedNode;
 
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [spacing, setSpacing] = useState(550);
@@ -333,14 +339,29 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     setFocusedNode(null);
   }, []);
 
-  /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
-   * Carousel: small horizontal commit threshold + gesture lock = one skill per gesture (inertia
-   * ignored after commit). Silence timer clears lock and accumulators; no mid-gesture gap resets. */
+  const navigateRef = useRef(navigate);
+  const enterFocusedRef = useRef(enterFocused);
+  const exitFocusedRef = useRef(exitFocused);
+
+  useLayoutEffect(() => {
+    focusedNodeRef.current = focusedNode;
+    navigateRef.current = navigate;
+    enterFocusedRef.current = enterFocused;
+    exitFocusedRef.current = exitFocused;
+  });
+
+  /** Unlock carousel wheel only when leaving focused mode — not on every activeIndex change. */
   useEffect(() => {
     if (focusedNode === null) {
       carouselWheelGestureLock.current = false;
     }
+  }, [focusedNode]);
 
+  /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
+   * Listener is mounted once (refs hold latest callbacks). If this effect re-ran on every
+   * activeIndex change, enterFocused’s identity would change, cleanup would clear the lock and
+   * silence timer — one trackpad swipe would advance the carousel many times. */
+  useEffect(() => {
     let accumulatedX = 0;
     let accumulatedY = 0;
     let focusAccumX = 0;
@@ -399,7 +420,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
           carouselWheelGestureLock.current = false;
           focusAccumX = 0;
           focusAccumY = 0;
-          exitFocused();
+          exitFocusedRef.current();
         }
         return;
       }
@@ -413,7 +434,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         Math.abs(accumulatedX) >= HORIZONTAL_COMMIT_THRESHOLD &&
         Math.abs(accumulatedX) > Math.abs(accumulatedY)
       ) {
-        navigate(accumulatedX > 0 ? 1 : -1);
+        navigateRef.current(accumulatedX > 0 ? 1 : -1);
         carouselWheelGestureLock.current = true;
         accumulatedX = 0;
         accumulatedY = 0;
@@ -424,7 +445,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         accumulatedY <= -VERTICAL_WHEEL_THRESHOLD &&
         Math.abs(accumulatedY) > Math.abs(accumulatedX)
       ) {
-        enterFocused();
+        enterFocusedRef.current();
         accumulatedX = 0;
         accumulatedY = 0;
         carouselWheelGestureLock.current = true;
@@ -435,7 +456,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
       window.removeEventListener("wheel", handleWheel);
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
     };
-  }, [navigate, focusedNode, enterFocused, exitFocused]);
+  }, []);
 
   /* Unified keyboard handler — capture phase to intercept before page-level ESC */
   useEffect(() => {
