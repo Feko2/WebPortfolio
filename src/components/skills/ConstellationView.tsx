@@ -291,10 +291,8 @@ const ConstellationSVG = memo(function ConstellationSVG({
 export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
-  const scrollCooldown = useRef(false);
-  /** One horizontal wheel gesture → at most one skill change (trackpad momentum fires many events). */
-  const horizontalWheelConsumedRef = useRef(false);
-  const wheelGestureIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** True until trackpad/mouse wheel inertia ends — one carousel step per gesture, not per delta sum. */
+  const carouselWheelGestureLock = useRef(false);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [spacing, setSpacing] = useState(550);
 
@@ -312,17 +310,12 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   }, []);
 
   const navigate = useCallback((dir: number) => {
-    if (scrollCooldown.current) return;
-    scrollCooldown.current = true;
     setActiveIndex((prev) => {
       let next = prev + dir;
       if (next < 0) next = skills.length - 1;
       if (next >= skills.length) next = 0;
       return next;
     });
-    setTimeout(() => {
-      scrollCooldown.current = false;
-    }, 350);
   }, []);
 
   const enterFocused = useCallback(() => {
@@ -336,56 +329,54 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     setFocusedNode(null);
   }, []);
 
-  /* Wheel — horizontal = carousel, vertical up = enter focused mode */
+  /* Wheel — horizontal = carousel, vertical up = enter focused mode.
+   * Gesture lock: after one step, ignore further deltas until wheel stream stops (inertia ended).
+   * Avoids a time cooldown between separate swipes — only the tail of the same gesture is suppressed. */
   useEffect(() => {
     let accumulatedX = 0;
     let accumulatedY = 0;
+    let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
     const threshold = 80;
-    const gestureIdleMs = 280;
+    /** Silence after last wheel event before treating the next swipe as a new gesture. */
+    const GESTURE_END_MS = 200;
 
-    const scheduleWheelGestureEnd = () => {
-      if (wheelGestureIdleTimerRef.current) clearTimeout(wheelGestureIdleTimerRef.current);
-      wheelGestureIdleTimerRef.current = setTimeout(() => {
-        horizontalWheelConsumedRef.current = false;
+    const scheduleGestureEnd = () => {
+      if (gestureEndTimer) clearTimeout(gestureEndTimer);
+      gestureEndTimer = setTimeout(() => {
+        carouselWheelGestureLock.current = false;
         accumulatedX = 0;
         accumulatedY = 0;
-      }, gestureIdleMs);
+        gestureEndTimer = null;
+      }, GESTURE_END_MS);
     };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      scheduleWheelGestureEnd();
       if (focusedNode !== null) return;
-      if (scrollCooldown.current) return;
 
-      if (!horizontalWheelConsumedRef.current) {
-        accumulatedX += e.deltaX;
-        accumulatedY += e.deltaY;
-      } else {
-        accumulatedY += e.deltaY;
-      }
+      scheduleGestureEnd();
 
-      if (
-        Math.abs(accumulatedX) >= threshold &&
-        Math.abs(accumulatedX) > Math.abs(accumulatedY)
-      ) {
-        horizontalWheelConsumedRef.current = true;
+      if (carouselWheelGestureLock.current) return;
+
+      accumulatedX += e.deltaX;
+      accumulatedY += e.deltaY;
+
+      if (Math.abs(accumulatedX) >= threshold && Math.abs(accumulatedX) > Math.abs(accumulatedY)) {
         navigate(accumulatedX > 0 ? 1 : -1);
         accumulatedX = 0;
         accumulatedY = 0;
-      } else if (
-        accumulatedY <= -threshold &&
-        Math.abs(accumulatedY) > Math.abs(accumulatedX)
-      ) {
+        carouselWheelGestureLock.current = true;
+      } else if (accumulatedY <= -threshold && Math.abs(accumulatedY) > Math.abs(accumulatedX)) {
         enterFocused();
         accumulatedX = 0;
         accumulatedY = 0;
+        carouselWheelGestureLock.current = true;
       }
     };
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      if (wheelGestureIdleTimerRef.current) clearTimeout(wheelGestureIdleTimerRef.current);
+      if (gestureEndTimer) clearTimeout(gestureEndTimer);
     };
   }, [navigate, focusedNode, enterFocused]);
 
