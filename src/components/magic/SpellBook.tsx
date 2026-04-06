@@ -6,6 +6,7 @@ import {
   parchmentSections,
   ParchmentSection,
   ParchmentLink,
+  type ParchmentEntry,
 } from "@/data/resume";
 
 export type SpellBookProps = {
@@ -13,7 +14,7 @@ export type SpellBookProps = {
   onOpenItems: (projectId: string) => void;
 };
 
-function ParchmentLinkButton({
+function ParchmentInlineLink({
   link,
   onOpenMap,
   onOpenItems,
@@ -30,18 +31,50 @@ function ParchmentLinkButton({
   if (!link.mapLocationId && !link.projectId) return null;
 
   return (
-    <motion.button
+    <button
       type="button"
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
       onClick={handleClick}
-      className="text-left text-[10px] tracking-[0.12em] uppercase px-3 py-2 rounded-sm
-        border border-[rgba(60,35,12,0.35)] bg-[rgba(255,248,230,0.45)]
-        text-[rgba(45,28,8,0.78)] hover:bg-[rgba(255,248,230,0.75)]
-        hover:border-[rgba(60,35,12,0.5)] transition-colors cursor-pointer"
+      className="inline p-0 m-0 align-baseline bg-transparent border-0 cursor-pointer
+        text-xs tracking-wide text-[rgba(75,48,18,0.62)] underline underline-offset-[3px]
+        decoration-[rgba(90,55,20,0.4)] hover:text-[rgba(28,16,4,0.9)]
+        hover:decoration-[rgba(28,16,4,0.55)] transition-colors text-left font-sans"
     >
       {link.label}
-    </motion.button>
+    </button>
+  );
+}
+
+function EntryLocationLine({
+  entry,
+  onOpenMap,
+  onOpenItems,
+}: {
+  entry: ParchmentEntry;
+  onOpenMap: (locationId: string) => void;
+  onOpenItems: (projectId: string) => void;
+}) {
+  const links =
+    entry.links?.filter((l) => l.mapLocationId || l.projectId) ?? [];
+  if (!entry.period && links.length === 0) return null;
+
+  return (
+    <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)] leading-relaxed max-w-xl">
+      {entry.period}
+      {links.map((link, li) => (
+        <span key={`${entry.id}-${link.label}-${li}`}>
+          {(entry.period || li > 0) && (
+            <span className="mx-1.5 text-[rgba(75,48,18,0.38)]" aria-hidden>
+              ·
+            </span>
+          )}
+          <ParchmentInlineLink
+            link={link}
+            onOpenMap={onOpenMap}
+            onOpenItems={onOpenItems}
+          />
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -72,7 +105,7 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
       <div className="relative z-10 flex flex-1 min-h-0 w-full pb-16">
         {/* Section navigation */}
         <aside
-          className="w-[min(280px,32vw)] shrink-0 flex flex-col pl-8 pr-5 border-r border-[rgba(60,35,12,0.18)]"
+          className="w-[min(280px,32vw)] shrink-0 flex flex-col pl-8 pr-6 border-r border-[rgba(60,35,12,0.18)]"
         >
           <p
             className="font-skyrim text-[9px] tracking-[0.35em] uppercase mb-6"
@@ -137,7 +170,7 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
 
         {/* Entries */}
         <div
-          className="flex-1 min-w-0 px-8 lg:px-12 overflow-y-auto"
+          className="flex-1 min-w-0 pl-10 lg:pl-16 pr-8 lg:pr-12 overflow-y-auto"
           style={{
             color: "rgba(40, 22, 6, 0.82)",
           }}
@@ -170,31 +203,19 @@ export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
                     transition={{ delay: 0.06 + i * 0.05 }}
                     className="pl-0"
                   >
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5 mb-2">
                       <h2 className="font-serif text-lg font-semibold text-[rgba(28,16,4,0.92)]">
                         {entry.title}
                       </h2>
-                      {entry.period && (
-                        <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)]">
-                          {entry.period}
-                        </span>
-                      )}
+                      <EntryLocationLine
+                        entry={entry}
+                        onOpenMap={onOpenMap}
+                        onOpenItems={onOpenItems}
+                      />
                     </div>
                     <p className="text-[13px] leading-relaxed text-[rgba(45,28,10,0.78)] max-w-2xl">
                       {entry.body}
                     </p>
-                    {entry.links && entry.links.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {entry.links.map((link) => (
-                          <ParchmentLinkButton
-                            key={`${entry.id}-${link.label}`}
-                            link={link}
-                            onOpenMap={onOpenMap}
-                            onOpenItems={onOpenItems}
-                          />
-                        ))}
-                      </div>
-                    )}
                   </motion.li>
                 ))}
               </ul>

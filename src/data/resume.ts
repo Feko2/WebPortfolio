@@ -4,7 +4,7 @@
  */
 
 export interface ParchmentLink {
-  /** Short label shown on the button */
+  /** Inline link label (map / project actions appear beside `period`) */
   label: string;
   /** When set, navigates to Map and focuses this location id */
   mapLocationId?: string;
