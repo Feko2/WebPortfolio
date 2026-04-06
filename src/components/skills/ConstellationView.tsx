@@ -298,9 +298,9 @@ const ConstellationSVG = memo(function ConstellationSVG({
 export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
-  /** After a horizontal carousel step, ignore repeat horizontal until wheel silence (same as one arrow). */
+  /** After a horizontal carousel step, short fixed cooldown (not “silence until inertia stops”). */
   const carouselHorizontalWheelLock = useRef(false);
-  /** After wheel-triggered enter-focus, brief lock until silence (avoids double-enter before state updates). */
+  /** After wheel-triggered enter-focus, brief cooldown (avoids double-enter before state updates). */
   const carouselVerticalWheelLock = useRef(false);
   /** Wheel handler reads this so routing updates immediately when exiting focus mid-gesture. */
   const focusedNodeRef = useRef<number | null>(null);
@@ -360,36 +360,53 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     }
   }, [focusedNode]);
 
-  /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
-   * Horizontal and vertical use separate locks so a horizontal swipe does not block scrolling up
-   * to enter focus (unlike a single shared lock). Listener is mounted once (refs hold callbacks). */
+  /* Wheel — carousel: each qualifying tick is one step (like an arrow key). Cooldowns are fixed
+   * timeouts that are NOT reset by every inertia event (resetting caused ~1–2s waits until scrolling
+   * fully stopped). Focused mode: scroll-down still uses small accumulation to exit. */
   useEffect(() => {
-    let accumulatedX = 0;
-    let accumulatedY = 0;
     let focusAccumX = 0;
     let focusAccumY = 0;
-    let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
-    /**
-     * Small threshold so the carousel responds quickly; further horizontal delta in the same inertia
-     * stream is ignored until silence (horizontal lock only).
-     */
-    const HORIZONTAL_COMMIT_THRESHOLD = 36;
-    /** Vertical scroll accumulated for enter focus / exit focus. */
-    const VERTICAL_WHEEL_THRESHOLD = 90;
-    /** Shorter silence so successive swipes feel closer to repeated arrow keys. */
-    const GESTURE_END_MS = 120;
+    let horizontalCooldownTimer: ReturnType<typeof setTimeout> | null = null;
+    let verticalCooldownTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const scheduleGestureEnd = () => {
-      if (gestureEndTimer) clearTimeout(gestureEndTimer);
-      gestureEndTimer = setTimeout(() => {
+    /** Ignore sub-pixel noise; one tick past this with horizontal dominance = one carousel step. */
+    const HORIZONTAL_MIN_DX = 6;
+    /** One dominant upward tick enters focus (deltaY negative). */
+    const VERTICAL_UP_MIN_DY = 20;
+    const FOCUS_SCROLL_DOWN_THRESHOLD = 90;
+
+    const clearHorizontalCooldownTimer = () => {
+      if (horizontalCooldownTimer) {
+        clearTimeout(horizontalCooldownTimer);
+        horizontalCooldownTimer = null;
+      }
+    };
+
+    const clearVerticalCooldownTimer = () => {
+      if (verticalCooldownTimer) {
+        clearTimeout(verticalCooldownTimer);
+        verticalCooldownTimer = null;
+      }
+    };
+
+    const armHorizontalCooldown = () => {
+      clearHorizontalCooldownTimer();
+      carouselHorizontalWheelLock.current = true;
+      horizontalCooldownTimer = setTimeout(() => {
         carouselHorizontalWheelLock.current = false;
+        horizontalCooldownTimer = null;
+      }, 140);
+    };
+
+    const armVerticalEnterCooldown = () => {
+      clearVerticalCooldownTimer();
+      carouselVerticalWheelLock.current = true;
+      carouselHorizontalWheelLock.current = true;
+      verticalCooldownTimer = setTimeout(() => {
         carouselVerticalWheelLock.current = false;
-        accumulatedX = 0;
-        accumulatedY = 0;
-        focusAccumX = 0;
-        focusAccumY = 0;
-        gestureEndTimer = null;
-      }, GESTURE_END_MS);
+        carouselHorizontalWheelLock.current = false;
+        verticalCooldownTimer = null;
+      }, 140);
     };
 
     const wheelToPixels = (ev: WheelEvent) => {
@@ -407,8 +424,6 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      scheduleGestureEnd();
-
       const { dx, dy } = wheelToPixels(e);
 
       if (focusedNodeRef.current !== null) {
@@ -416,12 +431,14 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         focusAccumY += dy;
 
         if (
-          focusAccumY >= VERTICAL_WHEEL_THRESHOLD &&
+          focusAccumY >= FOCUS_SCROLL_DOWN_THRESHOLD &&
           focusAccumY > Math.abs(focusAccumX)
         ) {
           focusedNodeRef.current = null;
           carouselHorizontalWheelLock.current = false;
           carouselVerticalWheelLock.current = false;
+          clearHorizontalCooldownTimer();
+          clearVerticalCooldownTimer();
           focusAccumX = 0;
           focusAccumY = 0;
           exitFocusedRef.current();
@@ -429,36 +446,31 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         return;
       }
 
-      accumulatedX += dx;
-      accumulatedY += dy;
-
       if (
         !carouselHorizontalWheelLock.current &&
-        Math.abs(accumulatedX) >= HORIZONTAL_COMMIT_THRESHOLD &&
-        Math.abs(accumulatedX) > Math.abs(accumulatedY)
+        Math.abs(dx) > Math.abs(dy) &&
+        Math.abs(dx) >= HORIZONTAL_MIN_DX
       ) {
-        navigateRef.current(accumulatedX > 0 ? 1 : -1);
-        carouselHorizontalWheelLock.current = true;
-        accumulatedX = 0;
+        navigateRef.current(dx > 0 ? 1 : -1);
+        armHorizontalCooldown();
         return;
       }
 
       if (
         !carouselVerticalWheelLock.current &&
-        accumulatedY <= -VERTICAL_WHEEL_THRESHOLD &&
-        Math.abs(accumulatedY) > Math.abs(accumulatedX)
+        dy < 0 &&
+        Math.abs(dy) > Math.abs(dx) &&
+        Math.abs(dy) >= VERTICAL_UP_MIN_DY
       ) {
         enterFocusedRef.current();
-        carouselHorizontalWheelLock.current = true;
-        carouselVerticalWheelLock.current = true;
-        accumulatedX = 0;
-        accumulatedY = 0;
+        armVerticalEnterCooldown();
       }
     };
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      if (gestureEndTimer) clearTimeout(gestureEndTimer);
+      clearHorizontalCooldownTimer();
+      clearVerticalCooldownTimer();
     };
   }, []);
 
