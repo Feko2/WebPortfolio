@@ -293,8 +293,6 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
   /** True until trackpad/mouse wheel inertia ends — one carousel step per gesture, not per delta sum. */
   const carouselWheelGestureLock = useRef(false);
-  /** Survives wheel effect re-runs so gapMs isn’t forced to 0 on the first event after exiting focus (stale lock). */
-  const lastWheelTsRef = useRef(0);
   /** Wheel handler reads this so routing updates immediately when exiting focus mid-gesture. */
   const focusedNodeRef = useRef<number | null>(null);
   focusedNodeRef.current = focusedNode;
@@ -338,10 +336,9 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
    * One carousel step per wheel *gesture*: after horizontal navigate, the carousel stays locked
    * until wheel events stop for GESTURE_END_MS (silence). Do not unlock on inter-event gaps — trackpad
-   * inertia can pause >140ms mid-swipe, which previously fired extra navigations in one scroll.
-   * lastWheelTsRef persists across effect re-runs; first event after silence uses infinite gap so
-   * inter-burst logic clears a stale carouselWheelGestureLock (e.g. after wheel-up entered focus).
-   * Carousel horizontal uses a higher delta threshold than vertical (enter/exit focus). */
+   * inertia can pause mid-swipe, which previously fired extra navigations in one scroll.
+   * Accumulators are not cleared on inter-event gaps (sparse early events caused perceived lag and
+   * over-scrolling); only the silence timer resets them. One-step behavior is enforced by the lock. */
   useEffect(() => {
     if (focusedNode === null) {
       carouselWheelGestureLock.current = false;
@@ -352,17 +349,12 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     let focusAccumX = 0;
     let focusAccumY = 0;
     let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
-    /** Horizontal scroll needed for one carousel step (trackpad deltas add up quickly). */
-    const CAROUSEL_HORIZONTAL_THRESHOLD = 480;
+    /** Horizontal scroll to register one carousel step (lock prevents multi-step in one gesture). */
+    const CAROUSEL_HORIZONTAL_THRESHOLD = 260;
     /** Vertical scroll for enter focus / exit focus — separate from horizontal so carousel isn’t hair-trigger. */
     const VERTICAL_WHEEL_THRESHOLD = 100;
-    /**
-     * Reset wheel accumulators when events space out (new intent / direction), without releasing the
-     * carousel lock — that is only cleared after full silence (GESTURE_END_MS).
-     */
-    const INTER_BURST_GAP_MS = 140;
     /** No wheel events for this long ends the gesture and allows another carousel step. */
-    const GESTURE_END_MS = 240;
+    const GESTURE_END_MS = 220;
 
     const scheduleGestureEnd = () => {
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
@@ -372,26 +364,12 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         accumulatedY = 0;
         focusAccumX = 0;
         focusAccumY = 0;
-        lastWheelTsRef.current = 0;
         gestureEndTimer = null;
       }, GESTURE_END_MS);
     };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const now = performance.now();
-      const gapMs =
-        lastWheelTsRef.current === 0
-          ? Number.POSITIVE_INFINITY
-          : now - lastWheelTsRef.current;
-      lastWheelTsRef.current = now;
-
-      if (gapMs >= INTER_BURST_GAP_MS) {
-        accumulatedX = 0;
-        accumulatedY = 0;
-        focusAccumX = 0;
-        focusAccumY = 0;
-      }
 
       scheduleGestureEnd();
 
@@ -570,7 +548,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
             <motion.div
               key={skill.id}
               animate={{ x, y, opacity, scale }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="absolute inset-0 flex flex-col items-center justify-center"
               style={{
                 willChange: "transform",
@@ -589,7 +567,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
                 animate={{
                   rotateX: isFocused && isActive ? 12 : 0,
                 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
               >
                 <ConstellationSVG
                   skill={skill}
@@ -605,7 +583,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
                   opacity: isFocused ? 0 : 1,
                   y: isFocused ? 20 : 0,
                 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.28 }}
               >
                 <h3 className="font-skyrim tracking-[0.25em] text-foreground mt-4 text-center">
                   <span className="text-2xl text-glow-cyan">{skill.name}</span>{" "}
