@@ -336,10 +336,9 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   }, []);
 
   /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
-   * One step per burst: after navigating, ignore deltas until a new burst — detected by a pause
-   * between wheel events (finger lift between swipes). Inertia keeps events ~every frame (~16ms),
-   * so it stays one step per continuous motion; quick repeated swipes have a larger gap and each
-   * unlocks cleanly. Silence timer resets state if the user stops entirely.
+   * One carousel step per wheel *gesture*: after horizontal navigate, the carousel stays locked
+   * until wheel events stop for GESTURE_END_MS (silence). Do not unlock on inter-event gaps — trackpad
+   * inertia can pause >140ms mid-swipe, which previously fired extra navigations in one scroll.
    * lastWheelTsRef persists across effect re-runs; first event after silence uses infinite gap so
    * inter-burst logic clears a stale carouselWheelGestureLock (e.g. after wheel-up entered focus).
    * Carousel horizontal uses a higher delta threshold than vertical (enter/exit focus). */
@@ -354,16 +353,16 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     let focusAccumY = 0;
     let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
     /** Horizontal scroll needed for one carousel step (trackpad deltas add up quickly). */
-    const CAROUSEL_HORIZONTAL_THRESHOLD = 320;
+    const CAROUSEL_HORIZONTAL_THRESHOLD = 480;
     /** Vertical scroll for enter focus / exit focus — separate from horizontal so carousel isn’t hair-trigger. */
     const VERTICAL_WHEEL_THRESHOLD = 100;
     /**
-     * Min ms since previous wheel event to treat as a new burst. 50ms was too low: occasional gaps between
-     * inertia frames cleared the carousel lock and fired extra navigations in one physical swipe.
+     * Reset wheel accumulators when events space out (new intent / direction), without releasing the
+     * carousel lock — that is only cleared after full silence (GESTURE_END_MS).
      */
     const INTER_BURST_GAP_MS = 140;
-    /** Silence after last wheel — full reset when stream ends. */
-    const GESTURE_END_MS = 200;
+    /** No wheel events for this long ends the gesture and allows another carousel step. */
+    const GESTURE_END_MS = 240;
 
     const scheduleGestureEnd = () => {
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
@@ -388,7 +387,6 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
       lastWheelTsRef.current = now;
 
       if (gapMs >= INTER_BURST_GAP_MS) {
-        carouselWheelGestureLock.current = false;
         accumulatedX = 0;
         accumulatedY = 0;
         focusAccumX = 0;
