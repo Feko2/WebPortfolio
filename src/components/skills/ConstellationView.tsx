@@ -291,8 +291,7 @@ const ConstellationSVG = memo(function ConstellationSVG({
 export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
-  /** True until trackpad/mouse wheel inertia ends — one carousel step per gesture, not per delta sum. */
-  const carouselWheelGestureLock = useRef(false);
+
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [spacing, setSpacing] = useState(550);
 
@@ -328,72 +327,6 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const exitFocused = useCallback(() => {
     setFocusedNode(null);
   }, []);
-
-  /* Wheel — horizontal = carousel, vertical up = enter focused mode.
-   * One step per burst: after navigating, ignore deltas until a new burst — detected by a pause
-   * between wheel events (finger lift between swipes). Inertia keeps events ~every frame (~16ms),
-   * so it stays one step per continuous motion; quick repeated swipes have a larger gap and each
-   * unlocks cleanly. Silence timer resets state if the user stops entirely. */
-  useEffect(() => {
-    let accumulatedX = 0;
-    let accumulatedY = 0;
-    let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastWheelTs = 0;
-    const threshold = 80;
-    /** Min ms since previous wheel event to treat this event as a new swipe burst (not same inertia). */
-    const INTER_BURST_GAP_MS = 50;
-    /** Silence after last wheel — full reset when stream ends. */
-    const GESTURE_END_MS = 160;
-
-    const scheduleGestureEnd = () => {
-      if (gestureEndTimer) clearTimeout(gestureEndTimer);
-      gestureEndTimer = setTimeout(() => {
-        carouselWheelGestureLock.current = false;
-        accumulatedX = 0;
-        accumulatedY = 0;
-        gestureEndTimer = null;
-      }, GESTURE_END_MS);
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      if (focusedNode !== null) return;
-
-      const now = performance.now();
-      const gapMs = lastWheelTs === 0 ? 0 : now - lastWheelTs;
-      lastWheelTs = now;
-
-      if (gapMs >= INTER_BURST_GAP_MS) {
-        carouselWheelGestureLock.current = false;
-        accumulatedX = 0;
-        accumulatedY = 0;
-      }
-
-      scheduleGestureEnd();
-
-      if (carouselWheelGestureLock.current) return;
-
-      accumulatedX += e.deltaX;
-      accumulatedY += e.deltaY;
-
-      if (Math.abs(accumulatedX) >= threshold && Math.abs(accumulatedX) > Math.abs(accumulatedY)) {
-        navigate(accumulatedX > 0 ? 1 : -1);
-        accumulatedX = 0;
-        accumulatedY = 0;
-        carouselWheelGestureLock.current = true;
-      } else if (accumulatedY <= -threshold && Math.abs(accumulatedY) > Math.abs(accumulatedX)) {
-        enterFocused();
-        accumulatedX = 0;
-        accumulatedY = 0;
-        carouselWheelGestureLock.current = true;
-      }
-    };
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      window.removeEventListener("wheel", handleWheel);
-      if (gestureEndTimer) clearTimeout(gestureEndTimer);
-    };
-  }, [navigate, focusedNode, enterFocused]);
 
   /* Unified keyboard handler — capture phase to intercept before page-level ESC */
   useEffect(() => {
