@@ -8,7 +8,7 @@ All portfolio content is stored as typed TypeScript objects in `src/data/`. Ther
 |------|---------|------------|-------------|
 | `skills.ts` | Skills | `skills: SkillCategory[]` | 8 skill categories with constellation data |
 | `projects.ts` | Items | `projects: Project[]` | 8 projects with stats and tech stack |
-| `locations.ts` | Map | `locations: Location[]`, `paths` | 6 locations with coordinates and 7 path connections |
+| `locations.ts` | Map | `locations: Location[]`, `paths` | 4 locations with coordinates and path connections |
 | `resume.ts` | Magic | `spellSchools: SpellSchool[]` | 6 resume sections with 22 total entries |
 
 ## How to Edit Content
