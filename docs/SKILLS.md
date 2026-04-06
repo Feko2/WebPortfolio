@@ -107,7 +107,7 @@ interface SkillCategory {
 
 ### Interaction
 - **Carousel (not focused):** The main carousel area uses three vertical bands relative to the skills panel width — left third → previous skill, right third → next, center third → focused mode. Horizontal swipe still changes the carousel. Keyboard: ←/→ or A/D switch skills; ↑ or W enters focused mode.
-- **Focused mode:** Tap exits; arrow keys or WASD move between stars; Esc exits. Star clicks select that node (`ConstellationView.tsx`).
+- **Focused mode:** Tap exits; trackpad/mouse wheel **down** (dominant vertical, same threshold as carousel) exits; arrow keys or WASD move between stars; Esc exits. Star clicks select that node (`ConstellationView.tsx`).
 - Skyrim-style perk unlock costs and prerequisites are not implemented; could add tooltips or lore per node.
 - The skill level numbers don't visually correspond to anything — could add a progress bar or fill effect.
 

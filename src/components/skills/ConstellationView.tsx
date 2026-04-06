@@ -293,6 +293,12 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
   const [focusedNode, setFocusedNode] = useState<number | null>(null);
   /** True until trackpad/mouse wheel inertia ends — one carousel step per gesture, not per delta sum. */
   const carouselWheelGestureLock = useRef(false);
+  /** Survives wheel effect re-runs so gapMs isn’t forced to 0 on the first event after exiting focus (stale lock). */
+  const lastWheelTsRef = useRef(0);
+  /** Wheel handler reads this so routing updates immediately when exiting focus mid-gesture. */
+  const focusedNodeRef = useRef<number | null>(null);
+  focusedNodeRef.current = focusedNode;
+
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [spacing, setSpacing] = useState(550);
 
@@ -329,16 +335,23 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
     setFocusedNode(null);
   }, []);
 
-  /* Wheel — horizontal = carousel, vertical up = enter focused mode.
+  /* Wheel — horizontal = carousel, vertical up = enter focused mode, vertical down (focused) = exit.
    * One step per burst: after navigating, ignore deltas until a new burst — detected by a pause
    * between wheel events (finger lift between swipes). Inertia keeps events ~every frame (~16ms),
    * so it stays one step per continuous motion; quick repeated swipes have a larger gap and each
-   * unlocks cleanly. Silence timer resets state if the user stops entirely. */
+   * unlocks cleanly. Silence timer resets state if the user stops entirely.
+   * lastWheelTsRef persists across effect re-runs; first event after silence uses infinite gap so
+   * inter-burst logic clears a stale carouselWheelGestureLock (e.g. after wheel-up entered focus). */
   useEffect(() => {
+    if (focusedNode === null) {
+      carouselWheelGestureLock.current = false;
+    }
+
     let accumulatedX = 0;
     let accumulatedY = 0;
+    let focusAccumX = 0;
+    let focusAccumY = 0;
     let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastWheelTs = 0;
     const threshold = 80;
     /** Min ms since previous wheel event to treat this event as a new swipe burst (not same inertia). */
     const INTER_BURST_GAP_MS = 50;
@@ -351,25 +364,48 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
         carouselWheelGestureLock.current = false;
         accumulatedX = 0;
         accumulatedY = 0;
+        focusAccumX = 0;
+        focusAccumY = 0;
+        lastWheelTsRef.current = 0;
         gestureEndTimer = null;
       }, GESTURE_END_MS);
     };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (focusedNode !== null) return;
-
       const now = performance.now();
-      const gapMs = lastWheelTs === 0 ? 0 : now - lastWheelTs;
-      lastWheelTs = now;
+      const gapMs =
+        lastWheelTsRef.current === 0
+          ? Number.POSITIVE_INFINITY
+          : now - lastWheelTsRef.current;
+      lastWheelTsRef.current = now;
 
       if (gapMs >= INTER_BURST_GAP_MS) {
         carouselWheelGestureLock.current = false;
         accumulatedX = 0;
         accumulatedY = 0;
+        focusAccumX = 0;
+        focusAccumY = 0;
       }
 
       scheduleGestureEnd();
+
+      if (focusedNodeRef.current !== null) {
+        focusAccumX += e.deltaX;
+        focusAccumY += e.deltaY;
+
+        if (
+          focusAccumY >= threshold &&
+          focusAccumY > Math.abs(focusAccumX)
+        ) {
+          focusedNodeRef.current = null;
+          carouselWheelGestureLock.current = false;
+          focusAccumX = 0;
+          focusAccumY = 0;
+          exitFocused();
+        }
+        return;
+      }
 
       if (carouselWheelGestureLock.current) return;
 
@@ -393,7 +429,7 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
       window.removeEventListener("wheel", handleWheel);
       if (gestureEndTimer) clearTimeout(gestureEndTimer);
     };
-  }, [navigate, focusedNode, enterFocused]);
+  }, [navigate, focusedNode, enterFocused, exitFocused]);
 
   /* Unified keyboard handler — capture phase to intercept before page-level ESC */
   useEffect(() => {
