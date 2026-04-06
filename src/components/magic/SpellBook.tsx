@@ -2,152 +2,282 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import { spellSchools, SpellSchool } from "@/data/resume";
+import { parchmentSections, ParchmentSection, ParchmentEntry } from "@/data/resume";
+import { locations } from "@/data/locations";
 
-export function SpellBook() {
-  const [activeSchool, setActiveSchool] = useState<SpellSchool>(spellSchools[0]);
+export type SpellBookProps = {
+  onOpenMap: (locationId: string) => void;
+  onOpenItems: (projectId: string) => void;
+};
+
+const metaLinkClass =
+  "text-xs tracking-wide text-[rgba(75,48,18,0.55)] hover:text-[rgba(45,28,8,0.88)] " +
+  "underline decoration-[rgba(75,48,18,0.3)] decoration-from-font underline-offset-[3px] " +
+  "hover:decoration-[rgba(45,28,8,0.55)] bg-transparent border-none p-0 m-0 " +
+  "cursor-pointer font-inherit align-baseline text-left";
+
+function mapLinkCaption(locationId: string): string {
+  const loc = locations.find((l) => l.id === locationId);
+  return loc?.city ?? loc?.name ?? locationId;
+}
+
+function EntryMetaLine({
+  entry,
+  onOpenMap,
+  onOpenItems,
+}: {
+  entry: ParchmentEntry;
+  onOpenMap: (locationId: string) => void;
+  onOpenItems: (projectId: string) => void;
+}) {
+  const mapLinks =
+    entry.links?.filter((l): l is typeof l & { mapLocationId: string } => Boolean(l.mapLocationId)) ??
+    [];
+  const projectLinks =
+    entry.links?.filter((l): l is typeof l & { projectId: string } => Boolean(l.projectId)) ?? [];
+
+  const period = entry.period;
+
+  const renderPeriodAndMap = () => {
+    if (!period) {
+      if (mapLinks.length === 0) return null;
+      return (
+        <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+          {mapLinks.map((l, i) => (
+            <span key={l.mapLocationId} className="contents">
+              {i > 0 && <span className="text-[rgba(75,48,18,0.35)]">·</span>}
+              <button
+                type="button"
+                className={metaLinkClass}
+                onClick={() => onOpenMap(l.mapLocationId)}
+              >
+                {mapLinkCaption(l.mapLocationId)}
+              </button>
+            </span>
+          ))}
+        </span>
+      );
+    }
+
+    if (mapLinks.length === 0) {
+      return (
+        <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)]">{period}</span>
+      );
+    }
+
+    if (mapLinks.length === 1) {
+      return (
+        <button type="button" className={metaLinkClass} onClick={() => onOpenMap(mapLinks[0].mapLocationId)}>
+          {period}
+        </button>
+      );
+    }
+
+    const parts = period.split(/\s*·\s*/);
+    if (parts.length === mapLinks.length) {
+      return (
+        <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-xs tracking-wide text-[rgba(75,48,18,0.55)]">
+          {parts.map((part, i) => (
+            <span key={`${entry.id}-map-${mapLinks[i].mapLocationId}`} className="contents">
+              {i > 0 && <span className="text-[rgba(75,48,18,0.35)]">·</span>}
+              <button
+                type="button"
+                className={metaLinkClass}
+                onClick={() => onOpenMap(mapLinks[i].mapLocationId)}
+              >
+                {part.trim()}
+              </button>
+            </span>
+          ))}
+        </span>
+      );
+    }
+
+    return (
+      <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+        <span className="text-xs tracking-wide text-[rgba(75,48,18,0.55)]">{period}</span>
+        {mapLinks.map((l) => (
+          <button
+            key={l.mapLocationId}
+            type="button"
+            className={metaLinkClass}
+            onClick={() => onOpenMap(l.mapLocationId)}
+          >
+            {mapLinkCaption(l.mapLocationId)}
+          </button>
+        ))}
+      </span>
+    );
+  };
+
+  const mapBlock = renderPeriodAndMap();
+
+  if (!mapBlock && projectLinks.length === 0) return null;
 
   return (
-    <div className="w-full h-full flex pt-20 pb-16">
-      {/* Left panel - spell schools */}
-      <div className="w-[300px] flex flex-col pl-10 pr-6 border-r border-foreground/6">
-        <h3 className="font-skyrim text-[10px] tracking-[0.35em] text-foreground/30 mb-8 uppercase">
-          Schools of Magic
-        </h3>
-        <div className="space-y-0.5 flex-1">
-          {spellSchools.map((school, i) => {
-            const isActive = activeSchool.id === school.id;
-            return (
-              <motion.button
-                key={school.id}
-                onClick={() => setActiveSchool(school)}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className={`w-full text-left px-4 py-3.5 cursor-pointer transition-all duration-300
-                  border-l-2 bg-transparent flex items-center gap-3.5 group
-                  ${
-                    isActive
-                      ? "border-l-sky-400/50 bg-sky-500/[0.04]"
-                      : "border-l-transparent hover:bg-foreground/[0.02] hover:border-l-foreground/15"
-                  }`}
-                whileHover={{ x: 3 }}
-              >
-                <span className="text-base opacity-70 group-hover:opacity-100 transition-opacity">
-                  {school.icon}
-                </span>
-                <div className="min-w-0">
-                  <span
-                    className={`font-skyrim text-xs tracking-[0.2em] block transition-all duration-300 ${
-                      isActive ? "text-foreground/85 text-glow-cyan" : "text-foreground/40"
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      {mapBlock}
+      {mapBlock && projectLinks.length > 0 && (
+        <span className="text-[rgba(75,48,18,0.35)] select-none" aria-hidden>
+          ·
+        </span>
+      )}
+      {projectLinks.map((l, i) => (
+        <span key={l.projectId} className="contents">
+          {i > 0 && (
+            <span className="text-[rgba(75,48,18,0.35)] select-none" aria-hidden>
+              ·
+            </span>
+          )}
+          <button type="button" className={metaLinkClass} onClick={() => onOpenItems(l.projectId)}>
+            {l.label ?? "Project"}
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export function SpellBook({ onOpenMap, onOpenItems }: SpellBookProps) {
+  const [active, setActive] = useState<ParchmentSection>(parchmentSections[0]);
+
+  return (
+    <div
+      className="relative w-full h-full flex flex-col min-h-0"
+      style={{
+        background:
+          "linear-gradient(165deg, #e8d4b8 0%, #d9c4a4 18%, #cbb592 42%, #d4c09a 65%, #e0cfa8 100%)",
+        boxShadow: "inset 0 0 120px rgba(90, 60, 30, 0.12)",
+      }}
+    >
+      {/* Aged paper texture overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.14] mix-blend-multiply z-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+        aria-hidden
+      />
+
+      {/* Clears fixed TopBar (~42px) with comfortable gap below */}
+      <div className="relative z-10 shrink-0 h-20" aria-hidden />
+
+      <div className="relative z-10 flex flex-1 min-h-0 w-full pb-16">
+        {/* Section navigation */}
+        <aside
+          className="w-[min(280px,32vw)] shrink-0 flex flex-col pl-8 pr-5 border-r border-[rgba(60,35,12,0.18)]"
+        >
+          <p
+            className="font-skyrim text-[9px] tracking-[0.35em] uppercase mb-6"
+            style={{ color: "rgba(45, 28, 8, 0.45)" }}
+          >
+            Chronicle
+          </p>
+          <nav className="space-y-1 flex-1 min-h-0 overflow-y-auto">
+            {parchmentSections.map((section, i) => {
+              const isActive = active.id === section.id;
+              return (
+                <motion.button
+                  key={section.id}
+                  type="button"
+                  onClick={() => setActive(section)}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className={`w-full text-left px-3 py-3 rounded-sm border transition-colors cursor-pointer
+                    ${
+                      isActive
+                        ? "border-[rgba(60,35,12,0.4)] bg-[rgba(255,248,230,0.55)] shadow-sm"
+                        : "border-transparent hover:bg-[rgba(255,248,230,0.35)] hover:border-[rgba(60,35,12,0.15)]"
                     }`}
-                  >
-                    {school.skyrimName}
-                  </span>
-                  <span className="text-[9px] text-foreground/20 tracking-wider block truncate">
-                    {school.name}
-                  </span>
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* Ornate separator */}
-        <div className="flex items-center gap-2 my-4">
-          <Image src="/SkyUI/dividers/ornate-l.png" alt="" width={14} height={14} className="opacity-20" />
-          <div className="flex-1 h-px bg-foreground/8" />
-          <Image src="/SkyUI/dividers/ornate-r.png" alt="" width={14} height={14} className="opacity-20" />
-        </div>
-
-        {/* Cast spell (download CV) */}
-        <div className="pb-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full font-skyrim text-[10px] tracking-[0.25em] px-4 py-3.5 
-              border border-sky-500/15 text-sky-400/50 
-              hover:bg-sky-500/[0.04] hover:border-sky-500/30 hover:text-sky-400/80
-              transition-all duration-400 cursor-pointer relative overflow-hidden group"
-          >
-            <span className="relative z-10">Cast Spell (Download CV)</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/0 via-sky-500/5 to-sky-500/0
-              translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Right panel - spell entries */}
-      <div className="flex-1 px-10 overflow-y-auto">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeSchool.id}
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.35 }}
-          >
-            {/* School header with dragon icon */}
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-2xl">{activeSchool.icon}</span>
-              <h2 className="font-skyrim text-2xl tracking-[0.25em] text-foreground/90 text-glow-cyan">
-                {activeSchool.skyrimName}
-              </h2>
-              <Image
-                src="/SkyUI/icons/dragon.png"
-                alt=""
-                width={22}
-                height={22}
-                className="opacity-20 ml-2"
-              />
-            </div>
-            <p className="font-skyrim text-[10px] tracking-[0.2em] text-foreground/30 mb-4 pl-[44px]">
-              {activeSchool.name}
-            </p>
-            <div className="flex items-center gap-2 mb-8">
-              <Image src="/SkyUI/dividers/ornate-l.png" alt="" width={18} height={18} className="opacity-20" />
-              <div className="flex-1 h-px bg-foreground/6" />
-              <Image src="/SkyUI/dividers/ornate-r.png" alt="" width={18} height={18} className="opacity-20" />
-            </div>
-
-            {/* Spell entries */}
-            <div className="space-y-3">
-              {activeSchool.entries.map((entry, i) => (
-                <motion.div
-                  key={entry.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                  className="border border-foreground/[0.04] hover:border-foreground/10 
-                    transition-all duration-300 p-5 group hover:bg-foreground/[0.015]
-                    relative overflow-hidden"
                 >
-                  {/* Subtle left accent */}
-                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-sky-500/0 
-                    group-hover:bg-sky-500/20 transition-colors duration-300" />
+                  <span
+                    className="font-skyrim text-[11px] tracking-[0.2em] block leading-snug"
+                    style={{
+                      color: isActive ? "rgba(35, 20, 5, 0.88)" : "rgba(45, 28, 8, 0.5)",
+                    }}
+                  >
+                    {section.title}
+                  </span>
+                  {section.subtitle && (
+                    <span
+                      className="text-[9px] tracking-wide block mt-1 leading-relaxed"
+                      style={{ color: "rgba(55, 35, 12, 0.42)" }}
+                    >
+                      {section.subtitle}
+                    </span>
+                  )}
+                </motion.button>
+              );
+            })}
+          </nav>
 
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-sm text-foreground/65 tracking-wide 
-                      group-hover:text-foreground/85 transition-colors duration-300">
-                      {entry.name}
-                    </h4>
-                    {entry.level && (
-                      <span className="text-[9px] font-skyrim tracking-[0.2em] text-sky-400/40 
-                        group-hover:text-sky-400/60 shrink-0 ml-6 pt-0.5 transition-colors duration-300">
-                        {entry.level}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-foreground/30 leading-relaxed group-hover:text-foreground/45 
-                    transition-colors duration-300">
-                    {entry.description}
+          <div
+            className="mt-4 pt-4 border-t border-[rgba(60,35,12,0.15)] shrink-0"
+          >
+            <a
+              href="/felipe-ramos-cv-en.pdf"
+              download="Felipe_Ramos_CV_EN.pdf"
+              className="flex items-center justify-center w-full font-skyrim text-[9px] tracking-[0.25em] uppercase
+                px-3 py-3 rounded-sm border border-[rgba(60,35,12,0.35)]
+                text-[rgba(45,28,8,0.75)] bg-[rgba(255,248,230,0.4)]
+                hover:bg-[rgba(255,248,230,0.65)] transition-colors"
+            >
+              Download CV (PDF)
+            </a>
+          </div>
+        </aside>
+
+        {/* Entries */}
+        <div
+          className="flex-1 min-w-0 pl-10 pr-8 lg:pl-16 lg:pr-12 overflow-y-auto"
+          style={{
+            color: "rgba(40, 22, 6, 0.82)",
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <header className="mb-8 pb-6 border-b border-[rgba(60,35,12,0.2)]">
+                <h1 className="font-serif text-2xl lg:text-3xl font-semibold tracking-tight text-[rgba(30,18,5,0.92)]">
+                  {active.title}
+                </h1>
+                {active.subtitle && (
+                  <p className="mt-2 text-sm tracking-wide text-[rgba(55,35,12,0.55)]">
+                    {active.subtitle}
                   </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+                )}
+              </header>
+
+              <ul className="space-y-8 list-none">
+                {active.entries.map((entry, i) => (
+                  <motion.li
+                    key={entry.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.06 + i * 0.05 }}
+                    className="pl-0"
+                  >
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+                      <h2 className="font-serif text-lg font-semibold text-[rgba(28,16,4,0.92)]">
+                        {entry.title}
+                      </h2>
+                      <EntryMetaLine entry={entry} onOpenMap={onOpenMap} onOpenItems={onOpenItems} />
+                    </div>
+                    <p className="text-[13px] leading-relaxed text-[rgba(45,28,10,0.78)] max-w-2xl">
+                      {entry.body}
+                    </p>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

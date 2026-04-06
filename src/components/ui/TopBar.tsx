@@ -8,8 +8,17 @@ interface TopBarProps {
   onBack: () => void;
 }
 
+const sectionLabels: Record<string, string> = {
+  skills: "Skills",
+  items: "Items",
+  map: "Map",
+  magic: "Chronicle",
+};
+
 export function TopBar({ currentSection, onBack }: TopBarProps) {
   if (!currentSection) return null;
+
+  const sectionTitle = sectionLabels[currentSection] ?? currentSection;
 
   return (
     <motion.div
@@ -47,7 +56,7 @@ export function TopBar({ currentSection, onBack }: TopBarProps) {
           {/* Center: Section + character info */}
           <div className="flex items-center justify-center gap-6">
             <span className="font-skyrim text-xs tracking-[0.3em] text-foreground/60 uppercase">
-              {currentSection}
+              {sectionTitle}
             </span>
             <MidDivider height={14} className="text-foreground/20" />
             <div className="flex items-center gap-2">

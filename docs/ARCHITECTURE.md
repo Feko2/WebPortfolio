@@ -106,7 +106,7 @@ All content is stored as typed TypeScript objects in `src/data/`. There is no da
 | `skills.ts` | Skill categories with constellation node positions | `SkillCategory` |
 | `projects.ts` | Project entries with rarity, stats, tech stack | `Project` |
 | `locations.ts` | Map locations with coordinates and descriptions | `Location` |
-| `resume.ts` | CV data organized as spell schools | `SpellSchool` |
+| `resume.ts` | Parchment CV (Chronicle) sections and entries | `ParchmentSection` |
 
 ## Styling System
 

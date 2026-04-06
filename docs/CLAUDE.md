@@ -4,7 +4,7 @@ You are working on a Skyrim-themed interactive web portfolio. Read this document
 
 ## Project Identity
 
-This is a personal portfolio for **Sena**, a 22-year-old developer (Breton race in Skyrim terms). The entire UI recreates Skyrim's character menu system — the compass navigation, constellation skill trees, inventory system, world map, and spell book — as a creative portfolio.
+This is a personal portfolio for **Sena**, a 22-year-old developer (Breton race in Skyrim terms). The entire UI recreates Skyrim's character menu system — the compass navigation, constellation skill trees, inventory system, world map, and a parchment Chronicle (CV) — as a creative portfolio.
 
 ## Quick Start
 
@@ -24,7 +24,7 @@ The user sees a compass rose on the main menu and clicks a direction to enter a 
 - **North → Skills**: Constellation skill tree (`src/components/skills/ConstellationView.tsx`)
 - **East → Items**: Project inventory (`src/components/items/InventoryView.tsx`)
 - **South → Map**: World map of experience (`src/components/map/WorldMap.tsx`)
-- **West → Magic**: CV/Resume spell book (`src/components/magic/SpellBook.tsx`)
+- **West → Magic (Chronicle)**: Parchment CV with map/items links (`src/components/magic/SpellBook.tsx`)
 
 Pressing ESC or clicking the back button returns to the main menu.
 
@@ -97,7 +97,7 @@ public/SkyUI/
 | `boxes/bottom-bar-thin.png` | InventoryView | Carry weight / gold footer |
 | `dividers/ornate-l.png`, `ornate-r.png` | Multiple | Decorative dividers flanking content |
 | `dividers/mid.png` | TopBar, page.tsx | Vertical separator between stats |
-| `icons/dragon.png` | SpellBook, InventoryView | Decorative dragon icon |
+| `icons/dragon.png` | InventoryView | Decorative dragon icon |
 | `icons/selector-left/right.png` | ConstellationView | Skill category navigation arrows |
 | `keys/escape.png` | TopBar | ESC key icon for back button |
 | `markers/college.png` | WorldMap | Education location markers |
@@ -115,7 +115,7 @@ public/SkyUI/
 1. **Audio files** — all `.mp3` files in `public/sounds/` are empty. Need real sound effects.
 2. ~~**Font**~~ — **DONE.** Futura Condensed (Light, Medium, Bold) TTFs from SkyUI pack are in `public/fonts/` and registered in `globals.css`.
 3. **All data** — skills, projects, locations, resume entries are placeholder text.
-4. **CV download** — the "Cast Spell" button in Magic section has no functionality.
+4. ~~**CV download**~~ — wired in Chronicle (`public/felipe-ramos-cv-en.pdf`).
 5. **Mobile** — no mobile-specific layout or touch interactions.
 6. **Images** — no project screenshots, no real map texture, no constellation icons. (Map markers, bar frames, card frames, and dividers are now covered by SkyUI assets.)
 7. **Links** — GitHub and demo URLs are placeholder.
@@ -131,7 +131,7 @@ Read these docs for detailed specifications on each part:
 | `SKILLS.md` | Constellation skill tree section — visual design, data schema, what needs work |
 | `ITEMS.md` | Project inventory section — layout, rarity system, data schema, what needs work |
 | `MAP.md` | World map section — parchment design, markers, pan/zoom, what needs work |
-| `MAGIC.md` | CV/Resume spell book section — school mapping, entries, what needs work |
+| `MAGIC.md` | Chronicle (parchment CV) — schema, map/items links, what needs work |
 | `AUDIO.md` | Audio system — Howler.js hook, sound registry, mute behavior, what needs work |
 | `DATA.md` | Data layer — all schemas, how to edit content, relationships |
 | `GOOGLE_STITCH_ASSETS.md` | Image/asset generation specs for Google Stitch — every visual asset needed |
@@ -161,8 +161,5 @@ Update in three places:
 3. No code changes needed
 
 ### "Wire up CV download"
-1. Place a PDF file at `public/resume.pdf`
-2. In `src/components/magic/SpellBook.tsx`, change the download button to:
-   ```tsx
-   <a href="/resume.pdf" download className="...">Cast Spell (Download CV)</a>
-   ```
+1. Place or replace the PDF at `public/felipe-ramos-cv-en.pdf`
+2. The Chronicle sidebar already links to it (`Download CV (PDF)`).

@@ -1,116 +1,115 @@
-export interface SpellEntry {
-  id: string;
-  name: string;
-  description: string;
-  level?: string;
+/**
+ * Parchment CV (West / “Magic” section): biographical entries with optional
+ * deep-links to the world map (`src/data/locations.ts`) and project inventory (`src/data/projects.ts`).
+ */
+
+export interface ParchmentLink {
+  /** Shown for inventory links; map-only entries use the entry `period` text instead */
+  label?: string;
+  /** When set, navigates to Map and focuses this location id */
+  mapLocationId?: string;
+  /** When set, navigates to Items and selects this project id */
+  projectId?: string;
 }
 
-export interface SpellSchool {
+export interface ParchmentEntry {
   id: string;
-  name: string;
-  skyrimName: string;
-  icon: string;
-  entries: SpellEntry[];
+  title: string;
+  body: string;
+  period?: string;
+  links?: ParchmentLink[];
 }
 
-export const spellSchools: SpellSchool[] = [
+export interface ParchmentSection {
+  id: string;
+  title: string;
+  subtitle?: string;
+  entries: ParchmentEntry[];
+}
+
+export const parchmentSections: ParchmentSection[] = [
   {
-    id: "destruction",
-    name: "Technical Skills",
-    skyrimName: "Destruction",
-    icon: "🔥",
-    entries: [
-      { id: "ts1", name: "Python", description: "Machine learning, computer vision pipelines, data engineering, and automation scripting", level: "Expert" },
-      { id: "ts2", name: "JavaScript & TypeScript", description: "React, Next.js, Node.js — full-stack web development with type-safe architectures", level: "Advanced" },
-      { id: "ts3", name: "C# & C++", description: "Unity game engine, .NET framework, simulation systems, and high-performance applications", level: "Advanced" },
-      { id: "ts4", name: "AI & Machine Learning", description: "PyTorch, scikit-learn, LangGraph, NLTK — deep learning, NLP, and multi-agent systems", level: "Expert" },
-      { id: "ts5", name: "Cloud & Infrastructure", description: "Oracle Cloud (OCI), Google Cloud, ORDS REST APIs, Oracle APEX dashboards", level: "Advanced" },
-      { id: "ts6", name: "Databases", description: "Oracle Database, MySQL, Microsoft SQL Server — relational modeling and query optimization", level: "Advanced" },
-      { id: "ts7", name: "Java & R", description: "Object-oriented design, algorithms, statistical analysis, and research computation", level: "Intermediate" },
-    ],
-  },
-  {
-    id: "restoration",
-    name: "Education",
-    skyrimName: "Restoration",
-    icon: "✨",
+    id: "community",
+    title: "Community & outreach",
+    subtitle: "Monterrey — inclusion, astronomy, and science communication",
     entries: [
       {
-        id: "ed1",
-        name: "B.S. Computer Technologies Engineering",
-        description: "Instituto Tecnológico de Estudios Superiores de Monterrey — GPA 90.12/100. Courses in Software Architecture, Data Structures & Advanced Algorithms, and Software Systems Development.",
-        level: "2022 - 2026",
-      },
-    ],
-  },
-  {
-    id: "alteration",
-    name: "Work Experience",
-    skyrimName: "Alteration",
-    icon: "🔮",
-    entries: [
-      {
-        id: "we1",
-        name: "Oracle — Software Engineering Intern",
-        description: "Defined system architecture for an internal ticket automation MVP. Implemented ticket ingestion pipeline using ORDS REST APIs with rule-based escalation logic. Designed relational data models and built Oracle APEX dashboards for team accountability.",
-        level: "Feb 2025 - Feb 2026",
-      },
-    ],
-  },
-  {
-    id: "conjuration",
-    name: "Notable Projects",
-    skyrimName: "Conjuration",
-    icon: "👻",
-    entries: [
-      {
-        id: "np1",
-        name: "OphNet — Glaucoma Diagnostic Research",
-        description: "Lead development of a computer vision–based glaucoma detection framework. Built a clinical data ingestion pipeline in collaboration with Hospital de la Ceguera for structured dataset construction from retinal imaging devices.",
-        level: "Aug 2025 - Present",
+        id: "inclusion-camp",
+        title: "Inclusion camp — staff & handler",
+        period: "Monterrey",
+        body:
+          "Served as staff and handler at an inclusion camp for children and adults with intellectual disabilities and autism, supporting participants through activities and ensuring a safe, welcoming environment.",
+        links: [{ mapLocationId: "tec" }],
       },
       {
-        id: "np2",
-        name: "Multi-Agent Warehouse Simulation",
-        description: "Designed a Q-Learning policy for robots to dynamically adjust paths and optimize task allocation. Built an autonomous warehouse simulation using Python and Unity with collision avoidance.",
-        level: "Aug 2024 - Dec 2024",
+        id: "satem",
+        title: "SATEM — vice president (marketing & events)",
+        period: "Tec de Monterrey · Astronomical Society",
+        body:
+          "Vice president of SATEM, Tec de Monterrey’s astronomical society, leading marketing and event organization for talks, observations, and society initiatives.",
+        links: [{ mapLocationId: "tec" }],
       },
       {
-        id: "np3",
-        name: "Skyrim Portfolio",
-        description: "This interactive web portfolio — a creative experience inspired by The Elder Scrolls V: Skyrim, featuring constellation skill trees, an inventory of projects, and a spell book resume.",
-        level: "2026",
+        id: "quasar",
+        title: "Quasar scientific journal",
+        period: "Tec de Monterrey",
+        body:
+          "Published in Quasar, the largest scientific journal at Tecnológico de Monterrey, contributing to peer-facing science communication on campus.",
+        links: [{ mapLocationId: "tec" }],
+      },
+      {
+        id: "cosmonautas",
+        title: "Cosmonautas — astronomy & physics instruction",
+        period: "Elementary & middle school · Monterrey",
+        body:
+          "Prepared and delivered astronomy and physics lessons for the Cosmonautas program, introducing scientific ideas to elementary and middle school students. Work tied to SATEM’s outreach mission in Monterrey.",
+        links: [{ mapLocationId: "tec" }],
       },
     ],
   },
   {
-    id: "illusion",
-    name: "Leadership & Activities",
-    skyrimName: "Illusion",
-    icon: "👁️",
+    id: "recognition",
+    title: "Recognition",
+    subtitle: "Industry award",
     entries: [
       {
-        id: "la1",
-        name: "Vice President — Astronomical Society",
-        description: "Led the Astronomical Society at Tecnológico de Monterrey. Coordinated and taught the Cosmonauts project, delivering astronomy classes to 50+ students.",
-        level: "Feb 2024 - Jan 2025",
-      },
-      {
-        id: "la2",
-        name: "Quasar Scientific Magazine",
-        description: "Supervisor and collaborator of Quasar, the largest scientific magazine at Tecnológico de Monterrey.",
-        level: "2024 - 2025",
+        id: "ikusi-velatia",
+        title: "Ikusi Velatia — best network infrastructure (mid-sized company)",
+        period: "Monterrey",
+        body:
+          "Recognized by Ikusi Velatia for creating the best-built network infrastructure for a mid-sized company — enterprise-grade design and implementation.",
+        links: [{ mapLocationId: "tec" }],
       },
     ],
   },
   {
-    id: "enchanting",
-    name: "Languages",
-    skyrimName: "Enchanting",
-    icon: "💎",
+    id: "work-research",
+    title: "Work & research",
+    subtitle: "Internships and research across Mexico",
     entries: [
-      { id: "lg1", name: "Spanish", description: "Native speaker", level: "Native" },
-      { id: "lg2", name: "English", description: "Full professional proficiency — C2 Advanced certification", level: "C2 Advanced" },
+      {
+        id: "oracle-intern",
+        title: "Oracle — software engineering internship",
+        period: "Zapopan, Jalisco",
+        body:
+          "Software internship at Oracle: architecture and delivery for internal tooling — ticket automation, ORDS REST APIs, and Oracle APEX dashboards.",
+        links: [
+          { mapLocationId: "oracle" },
+          { label: "Project details — Ticket Forge", projectId: "oracle-mvp" },
+        ],
+      },
+      {
+        id: "ophnet",
+        title: "OphNet — glaucoma diagnostic research",
+        period: "Ciudad de México · Mérida",
+        body:
+          "Research on a computer vision–based glaucoma detection framework: clinical data pipelines and deployment collaboration between CDMX and Mérida.",
+        links: [
+          { mapLocationId: "ophnet" },
+          { mapLocationId: "ophnet-merida" },
+          { label: "Project details — OphNet", projectId: "ophnet" },
+        ],
+      },
     ],
   },
 ];
