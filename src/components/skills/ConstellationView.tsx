@@ -470,7 +470,17 @@ export function ConstellationView({ onBack }: { onBack?: () => void }) {
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
         navigate(dx > 0 ? -1 : 1);
       } else if (isTap) {
-        enterFocused();
+        const el = e.currentTarget as HTMLElement;
+        const { left, width } = el.getBoundingClientRect();
+        const x = e.clientX - left;
+        const third = width / 3;
+        if (x < third) {
+          navigate(-1);
+        } else if (x > width - third) {
+          navigate(1);
+        } else {
+          enterFocused();
+        }
       }
     }
     pointerStart.current = null;
