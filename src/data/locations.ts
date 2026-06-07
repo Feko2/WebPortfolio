@@ -12,7 +12,8 @@ export interface Location {
 
 /**
  * Positions are percentages (0–100) on `public/images/mexico-map.png`, origin top-left.
- * Calibrated for: Monterrey NE, Zapopan/Guadalajara west-central, CDMX central, Mérida on northern Yucatán.
+ * Calibrated against the drawn landmass: Monterrey in the northern interior,
+ * Zapopan/Guadalajara west-central, CDMX central, Mérida on the NW Yucatán.
  */
 export const locations: Location[] = [
   {
@@ -20,8 +21,8 @@ export const locations: Location[] = [
     name: "Tecnológico de Monterrey",
     type: "education",
     city: "Monterrey, NL",
-    x: 54,
-    y: 23,
+    x: 48,
+    y: 22,
     title: "B.S. Computer Technologies Engineering",
     period: "August 2022 - June 2026",
     description:
@@ -33,7 +34,7 @@ export const locations: Location[] = [
     type: "work",
     city: "Zapopan, JAL",
     x: 37,
-    y: 48,
+    y: 49,
     title: "Software Engineering Intern",
     period: "February 2025 - February 2026",
     description:
@@ -44,8 +45,8 @@ export const locations: Location[] = [
     name: "OphNet Research Lab",
     type: "project",
     city: "Ciudad de México, CDMX",
-    x: 50,
-    y: 53,
+    x: 47,
+    y: 52,
     title: "Glaucoma Diagnostic Research Lead",
     period: "August 2025 - Present",
     description:
@@ -56,8 +57,8 @@ export const locations: Location[] = [
     name: "OphNet Clinic",
     type: "project",
     city: "Mérida, YUC",
-    x: 77,
-    y: 36,
+    x: 71,
+    y: 65,
     title: "Clinical Deployment — OphNet",
     period: "August 2025 - Present",
     description:
