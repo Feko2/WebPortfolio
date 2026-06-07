@@ -156,12 +156,55 @@ const ConstellationSVG = memo(function ConstellationSVG({
   const isConnectionHighlighted = (from: number, to: number) =>
     selectedNode !== null && (from === selectedNode || to === selectedNode);
 
+  const focused = selectedNode !== null;
+  const glyphOpacity = focused ? 0.6 : isActive ? 0.24 : 0.07;
+
   return (
     <svg
       viewBox="0 0 800 500"
       className="w-full h-full"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* Revealed symbol — the figure the constellation depicts. Faint by
+          default, brightening as the skill becomes active and fully revealed
+          when focused (mirrors Skyrim's skill icons). */}
+      <g
+        style={{
+          opacity: glyphOpacity,
+          filter: focused
+            ? "drop-shadow(0 0 9px rgba(77, 201, 246, 0.55))"
+            : "drop-shadow(0 0 3px rgba(77, 201, 246, 0.25))",
+          transition: "opacity 0.5s ease, filter 0.5s ease",
+        }}
+      >
+        {skill.glyph.map((poly, i) => (
+          <polyline
+            key={`glyph-${i}`}
+            points={poly.map(([x, y]) => `${x},${y}`).join(" ")}
+            fill="none"
+            stroke="rgba(150, 215, 250, 0.9)"
+            strokeWidth={focused ? 2 : 1.5}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        ))}
+      </g>
+
+      {focused && (
+        <text
+          x={400}
+          y={488}
+          textAnchor="middle"
+          fill="rgba(185, 220, 248, 0.5)"
+          fontSize="13px"
+          fontFamily="'Futura', 'Century Gothic', sans-serif"
+          letterSpacing="0.32em"
+          style={{ textTransform: "uppercase" }}
+        >
+          {skill.symbolLabel}
+        </text>
+      )}
+
       {/* Connection lines with CSS glow */}
       <g style={{ filter: lineGlow }}>
         {skill.connections.map(([from, to], i) => {
