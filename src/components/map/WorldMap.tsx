@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { locations, paths, Location } from "@/data/locations";
+import { asset } from "@/lib/asset";
 
 const typeColors = {
   education: "#4dc9f6",
@@ -224,7 +225,7 @@ export function WorldMap({
         >
           {/* Map image */}
           <Image
-            src="/images/mexico-map.png"
+            src={asset("/images/mexico-map.png")}
             alt="Parchment map of Mexico"
             fill
             className="object-contain pointer-events-none"
@@ -284,7 +285,7 @@ export function WorldMap({
               }}
             >
               <Image
-                src={typeMarkers[location.type]}
+                src={asset(typeMarkers[location.type])}
                 alt={location.name}
                 width={32}
                 height={32}
