@@ -1,29 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Skyrim";
-  src: url("/fonts/futura-condensed-medium.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Skyrim";
-  src: url("/fonts/futura-condensed-bold.ttf") format("truetype");
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Skyrim";
-  src: url("/fonts/futura-condensed-light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   --background: #0a0a0a;
   --foreground: #d4c9a8;
@@ -88,7 +64,7 @@ body {
 }
 
 .font-skyrim {
-  font-family: "Skyrim", "Futura", "Century Gothic", sans-serif;
+  font-family: var(--font-skyrim), "Futura", "Century Gothic", sans-serif;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }

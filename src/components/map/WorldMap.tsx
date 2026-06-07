@@ -18,9 +18,9 @@ const typeLabels = {
 };
 
 const typeMarkers: Record<string, string> = {
-  education: "/SkyUI/markers/college.png",
-  work: "/SkyUI/markers/fort.png",
-  project: "/SkyUI/markers/standing-stone.png",
+  education: "/skyui/markers/college.png",
+  work: "/skyui/markers/fort.png",
+  project: "/skyui/markers/standing-stone.png",
 };
 
 const MAP_ASPECT = 43 / 24;

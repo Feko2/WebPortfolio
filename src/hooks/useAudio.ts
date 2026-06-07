@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Howl } from "howler";
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const SOUNDS = {
-  hover: "/sounds/hover.mp3",
-  click: "/sounds/click.mp3",
-  open: "/sounds/open.mp3",
-  close: "/sounds/close.mp3",
+  hover: `${BASE_PATH}/sounds/hover.mp3`,
+  click: `${BASE_PATH}/sounds/click.mp3`,
+  open: `${BASE_PATH}/sounds/open.mp3`,
+  close: `${BASE_PATH}/sounds/close.mp3`,
 } as const;
 
 type SoundName = keyof typeof SOUNDS;
@@ -35,7 +37,7 @@ export function useAudio() {
     });
 
     ambientRef.current = new Howl({
-      src: ["/sounds/ambient.mp3"],
+      src: [`${BASE_PATH}/sounds/ambient.mp3`],
       volume: 0.15,
       loop: true,
       preload: true,
