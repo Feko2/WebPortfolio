@@ -114,10 +114,10 @@ export const projects: Project[] = [
     role: "Software Engineer",
     tagline: "Unattended Oracle Fusion export automation in Playwright.",
     description:
-      "A resilient service-request exporter for Oracle Fusion built with Playwright and TypeScript. It reuses the existing Chrome SSO profile to run daily CSV exports without handling credentials, and can optionally push results to ORDS endpoints.",
+      "A resilient service-request exporter for Oracle Fusion built with Playwright and TypeScript. It handles Oracle SSO authentication, runs daily CSV exports unattended, and can optionally push results to ORDS endpoints.",
     highlights: [
       "Automates daily Oracle Fusion service-request CSV exports.",
-      "Reuses the Chrome SSO profile — no password handling required.",
+      "Manages SSO sign-in so scheduled runs complete without manual intervention.",
       "Optional POST to ORDS (smoke test today, OAuth-ready).",
       "Hardened with retry logic and robustness fixes for unattended runs.",
     ],
