@@ -12,9 +12,9 @@ interface CompassNavProps {
 
 const sections = [
   { id: "skills", label: "Skills", dx: 0, dy: -1 },
-  { id: "items", label: "Items", dx: 1, dy: 0 },
+  { id: "items", label: "Projects", dx: 1, dy: 0 },
   { id: "map", label: "Map", dx: 0, dy: 1 },
-  { id: "magic", label: "Magic", dx: -1, dy: 0 },
+  { id: "magic", label: "Activities", dx: -1, dy: 0 },
 ] as const;
 
 const BLADE_COLOR = "212, 201, 168";

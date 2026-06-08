@@ -4,7 +4,7 @@ You are working on a Skyrim-themed interactive web portfolio. Read this document
 
 ## Project Identity
 
-This is a personal portfolio for **Sena**, a 22-year-old developer (Breton race in Skyrim terms). The entire UI recreates Skyrim's character menu system — the compass navigation, constellation skill trees, inventory system, world map, and a parchment Chronicle (CV) — as a creative portfolio.
+This is a personal portfolio for **Sena**, a 22-year-old developer (Breton race in Skyrim terms). The entire UI recreates Skyrim's character menu system — the compass navigation, constellation skill trees, project inventory, world map, and an antique newspaper Activities section — as a creative portfolio.
 
 ## Quick Start
 
@@ -22,9 +22,9 @@ This is a **single-page app** — all navigation happens within `src/app/page.ts
 
 The user sees a compass rose on the main menu and clicks a direction to enter a section:
 - **North → Skills**: Constellation skill tree (`src/components/skills/ConstellationView.tsx`)
-- **East → Items**: Project inventory (`src/components/items/InventoryView.tsx`)
+- **East → Projects**: Project inventory (`src/components/items/InventoryView.tsx`)
 - **South → Map**: World map of experience (`src/components/map/WorldMap.tsx`)
-- **West → Magic (Chronicle)**: Parchment CV with map/items links (`src/components/magic/SpellBook.tsx`)
+- **West → Activities**: Antique newspaper with map/projects links (`src/components/magic/SpellBook.tsx`)
 
 Pressing ESC or clicking the back button returns to the main menu.
 

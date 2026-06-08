@@ -26,7 +26,7 @@ export const locations: Location[] = [
     title: "B.S. Computer Technologies Engineering",
     period: "August 2022 - June 2026",
     description:
-      "Studying Software Architecture, Data Structures & Advanced Algorithms, and Software Systems Development. GPA 90.12/100. For the multi-agent warehouse simulation and other projects built at Tec, open Items (compass East). For education and experience in résumé form, open Magic (compass West).",
+      "Studying Software Architecture, Data Structures & Advanced Algorithms, and Software Systems Development. GPA 90.12/100. For the multi-agent warehouse simulation and other projects built at Tec, open Projects (compass East). For education and experience in résumé form, open Activities (compass West).",
   },
   {
     id: "oracle",

@@ -1,14 +1,14 @@
 /**
- * Parchment CV (West / “Magic” section): biographical entries with optional
- * deep-links to the world map (`src/data/locations.ts`) and project inventory (`src/data/projects.ts`).
+ * Activities newspaper (West section): biographical entries with optional
+ * deep-links to the world map (`src/data/locations.ts`) and Projects (`src/data/projects.ts`).
  */
 
 export interface ParchmentLink {
-  /** Shown for inventory links; map-only entries use the entry `period` text instead */
+  /** Shown for Projects links; map-only entries use the entry `period` text instead */
   label?: string;
   /** When set, navigates to Map and focuses this location id */
   mapLocationId?: string;
-  /** When set, navigates to Items and selects this project id */
+  /** When set, navigates to Projects and selects this project id */
   projectId?: string;
 }
 

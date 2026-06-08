@@ -81,9 +81,9 @@ Sections are mapped to compass directions:
 | Section | Direction | Slide Animation |
 |---------|-----------|-----------------|
 | Skills | North (top) | Slides in from top |
-| Items | East (right) | Slides in from right |
+| Projects | East (right) | Slides in from right |
 | Map | South (bottom) | Slides in from bottom |
-| Magic | West (left) | Slides in from left |
+| Activities | West (left) | Slides in from left |
 
 ### Rendering Layers (z-index)
 
@@ -106,7 +106,7 @@ All content is stored as typed TypeScript objects in `src/data/`. There is no da
 | `skills.ts` | Skill categories with constellation node positions | `SkillCategory` |
 | `projects.ts` | Project entries with rarity, stats, tech stack | `Project` |
 | `locations.ts` | Map locations with coordinates and descriptions | `Location` |
-| `resume.ts` | Parchment CV (Chronicle) sections and entries | `ParchmentSection` |
+| `resume.ts` | Activities newspaper sections and entries | `ParchmentSection` |
 
 ## Styling System
 

@@ -112,7 +112,7 @@ const paths: [string, string][];  // Array of [fromId, toId] pairs
 | ophnet | OphNet Research Lab | project | Ciudad de México, CDMX | (50, 53) | Glaucoma Diagnostic Research Lead |
 | ophnet-merida | OphNet Clinic | project | Mérida, YUC | (77, 36) | Clinical Deployment — OphNet |
 
-The Tec tooltip copy points readers to **Items** (East) for project inventory including the multi-agent work, and **Magic** (West) for résumé-style narrative — see `docs/ITEMS.md` and `docs/MAGIC.md` for section specs.
+The Tec tooltip copy points readers to **Projects** (East) for project inventory including the multi-agent work, and **Activities** (West) for résumé-style narrative — see `docs/ITEMS.md` and `docs/MAGIC.md` for section specs.
 
 ### Current Paths (4 connections)
 

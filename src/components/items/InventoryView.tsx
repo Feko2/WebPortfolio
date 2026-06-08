@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { projects, Project } from "@/data/projects";
-import { ItemList } from "./ItemList";
-import { ProjectCard } from "./ProjectCard";
+import { CategoryList, FilterCategory } from "./CategoryList";
+import { ProjectGrid } from "./ProjectGrid";
+import { ProjectShowcase } from "./ProjectShowcase";
 import { InventoryBar } from "./InventoryBar";
 
 export type InventoryViewProps = {
@@ -15,103 +17,125 @@ export function InventoryView({
   initialProjectId,
   onInitialProjectConsumed,
 }: InventoryViewProps = {}) {
-  const [activeId, setActiveId] = useState<string>(
+  const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const filteredProjects = useMemo(
     () =>
-      projects.find((p) => p.id === initialProjectId)?.id ?? projects[0].id
+      activeCategory === "all"
+        ? projects
+        : projects.filter((p) => p.category === activeCategory),
+    [activeCategory]
   );
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const isProgrammaticScroll = useRef(false);
+  const selectedProject = useMemo(
+    () => projects.find((p) => p.id === selectedId) ?? null,
+    [selectedId]
+  );
 
-  const scrollToProject = useCallback((id: string) => {
-    const el = sectionRefs.current[id];
-    const root = scrollRef.current;
-    if (!el || !root) return;
-    setActiveId(id);
-    // Suppress observer-driven active changes while the smooth scroll runs.
-    isProgrammaticScroll.current = true;
-    root.scrollTo({ top: el.offsetTop - 8, behavior: "smooth" });
-    window.setTimeout(() => {
-      isProgrammaticScroll.current = false;
-    }, 600);
-  }, []);
+  // The showcase navigates within whichever list is currently in view —
+  // the filtered list if the selection belongs to it, otherwise the full set.
+  const navList = useMemo(() => {
+    if (selectedProject && filteredProjects.some((p) => p.id === selectedProject.id)) {
+      return filteredProjects;
+    }
+    return projects;
+  }, [filteredProjects, selectedProject]);
 
-  // Sync the active list item with whichever card is near the viewport center.
-  useEffect(() => {
-    const root = scrollRef.current;
-    if (!root) return;
+  const navIndex = selectedProject
+    ? navList.findIndex((p) => p.id === selectedProject.id)
+    : -1;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isProgrammaticScroll.current) return;
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        const id = visible[0]?.target.getAttribute("data-project-id");
-        if (id) setActiveId(id);
-      },
-      { root, rootMargin: "-45% 0px -45% 0px", threshold: 0 }
-    );
+  const openProject = useCallback((project: Project) => setSelectedId(project.id), []);
+  const closeProject = useCallback(() => setSelectedId(null), []);
 
-    Object.values(sectionRefs.current).forEach((el) => {
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
+  const stepProject = useCallback(
+    (delta: 1 | -1) => {
+      if (navIndex === -1 || navList.length === 0) return;
+      const next = (navIndex + delta + navList.length) % navList.length;
+      setSelectedId(navList[next].id);
+    },
+    [navIndex, navList]
+  );
 
-  // Honour deep links (from the Chronicle / world map).
+  // Honour deep links (from Activities / world map) — open the project directly.
   useEffect(() => {
     if (!initialProjectId) return;
     const match = projects.find((p) => p.id === initialProjectId);
     if (match) {
-      // Jump without animation on deep-link entry.
-      const el = sectionRefs.current[match.id];
-      const root = scrollRef.current;
-      if (el && root) root.scrollTop = el.offsetTop - 8;
-      setActiveId(match.id);
+      setActiveCategory("all");
+      setSelectedId(match.id);
     }
     onInitialProjectConsumed?.();
   }, [initialProjectId, onInitialProjectConsumed]);
 
-  const handleSelect = (project: Project) => scrollToProject(project.id);
+  // While a showcase is open, ESC should close it (not the whole section).
+  // Captured ahead of the section-level keyboard handler and stopped from
+  // propagating further.
+  useEffect(() => {
+    if (!selectedProject) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeProject();
+      } else if (e.key === "ArrowLeft") {
+        stepProject(-1);
+      } else if (e.key === "ArrowRight") {
+        stepProject(1);
+      }
+    };
+    window.addEventListener("keydown", handler, true);
+    return () => window.removeEventListener("keydown", handler, true);
+  }, [selectedProject, closeProject, stepProject]);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col relative">
       {/* Spacer to clear the fixed TopBar */}
       <div className="shrink-0 h-[56px]" />
 
-      <div className="flex-1 flex min-h-0">
-        {/* ── Left: project list (scroll navigation) ──────────── */}
-        <div className="w-64 lg:w-72 shrink-0 flex flex-col pl-10 lg:pl-14 border-r border-foreground/[0.06]">
-          <ItemList
-            items={projects}
-            selectedId={activeId}
-            onSelect={handleSelect}
-          />
-        </div>
-
-        {/* ── Right: scrollable showcase of every project ─────── */}
-        <div
-          ref={scrollRef}
-          className="flex-1 min-w-0 px-8 lg:px-14 overflow-y-auto no-scrollbar"
-        >
-          <div className="max-w-3xl mx-auto divide-y divide-foreground/[0.05]">
-            {projects.map((project, i) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                index={i}
-                ref={(el) => {
-                  sectionRefs.current[project.id] = el;
-                }}
-              />
-            ))}
-          </div>
-        </div>
+      <div className="flex-1 min-h-0 relative">
+        <AnimatePresence mode="wait">
+          {selectedProject ? (
+            <ProjectShowcase
+              key={selectedProject.id}
+              project={selectedProject}
+              index={navIndex}
+              total={navList.length}
+              onClose={closeProject}
+              onPrev={() => stepProject(-1)}
+              onNext={() => stepProject(1)}
+            />
+          ) : (
+            <motion.div
+              key="launcher"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 flex"
+            >
+              <div className="w-48 lg:w-56 shrink-0 flex flex-col pl-10 lg:pl-14 pt-2 border-r border-foreground/[0.06]">
+                <CategoryList active={activeCategory} onChange={setActiveCategory} />
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col pl-px">
+                <ProjectGrid projects={filteredProjects} onSelect={openProject} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <InventoryBar projectCount={projects.length} />
+      <InventoryBar
+        projectCount={projects.length}
+        currentLabel={
+          selectedProject
+            ? `${selectedProject.name}`
+            : activeCategory === "all"
+              ? "All Projects"
+              : filteredProjects.length + " shown"
+        }
+      />
     </div>
   );
 }

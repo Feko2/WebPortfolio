@@ -10,9 +10,9 @@ interface TopBarProps {
 
 const sectionLabels: Record<string, string> = {
   skills: "Skills",
-  items: "Items",
+  items: "Projects",
   map: "Map",
-  magic: "Chronicle",
+  magic: "Activities",
 };
 
 export function TopBar({ currentSection, onBack }: TopBarProps) {

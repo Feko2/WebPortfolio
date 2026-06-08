@@ -17,7 +17,7 @@ The central navigation element on the main menu. Recreates Skyrim's iconic 4-dir
   - Inner diamond shapes (r=16, r=8)
   - Center Celtic knot (circle r=5, r=10, r=3)
 - **Navigation buttons**: 4 `motion.button` elements positioned at cardinal directions, 170px from center
-  - Labels: "Skills" (north), "Items" (east), "Map" (south), "Magic" (west)
+  - Labels: "Skills" (north), "Projects" (east), "Map" (south), "Activities" (west)
   - Font: `.font-skyrim` (uppercase, tracked)
   - Hover: scale 1.2 with Framer Motion
   - Active state: full opacity + `.text-glow`

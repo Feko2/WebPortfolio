@@ -7,9 +7,9 @@ All portfolio content is stored as typed TypeScript objects in `src/data/`. Ther
 | File | Section | Key Export | Description |
 |------|---------|------------|-------------|
 | `skills.ts` | Skills | `skills: SkillCategory[]` | 8 skill categories with constellation data |
-| `projects.ts` | Items | `projects: Project[]` | 8 projects with stats and tech stack |
+| `projects.ts` | Projects | `projects: Project[]` | 8 projects with stats and tech stack |
 | `locations.ts` | Map | `locations: Location[]`, `paths` | 4 locations with coordinates and path connections |
-| `resume.ts` | Chronicle (West) | `parchmentSections: ParchmentSection[]` | Biographical CV with optional map/project link ids |
+| `resume.ts` | Activities (West) | `parchmentSections: ParchmentSection[]` | Biographical entries with optional map/project link ids |
 
 ## How to Edit Content
 
@@ -77,7 +77,7 @@ Edit `src/data/locations.ts`. Add to `locations` array and optionally to `paths`
 ["existing-location-id", "new-location"]
 ```
 
-### Adding a Chronicle (parchment CV) entry
+### Adding an Activities newspaper entry
 
 Edit `src/data/resume.ts`. Add to an existing section's `entries` array, or add a new `parchmentSections` object:
 
@@ -90,7 +90,7 @@ Edit `src/data/resume.ts`. Add to an existing section's `entries` array, or add 
   body: "Narrative description.",
   links: [
     { mapLocationId: "tec" }, // opens Map; link text is `period` above
-    { label: "Project details", projectId: "ophnet" }, // optional Items link (label shown)
+    { label: "Project details", projectId: "ophnet" }, // optional Projects link (label shown)
   ],
 }
 
@@ -105,7 +105,7 @@ Edit `src/data/resume.ts`. Add to an existing section's `entries` array, or add 
 
 ## Data Relationships
 
-Chronicle entries can reference **`locations.ts`** via `mapLocationId` and **`projects.ts`** via `projectId`. Those ids must match existing records so `SpellBook` navigation works.
+Activities entries can reference **`locations.ts`** via `mapLocationId` and **`projects.ts`** via `projectId`. Those ids must match existing records so `SpellBook` navigation works.
 
 ## All Content is Placeholder
 

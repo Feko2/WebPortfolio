@@ -32,7 +32,7 @@ const INITIAL_SCALE = 1.5;
 const FOCUS_SCALE = 2.2;
 
 export type WorldMapProps = {
-  /** When set (e.g. from the Chronicle), selects this marker and pans to center it */
+  /** When set (e.g. from Activities), selects this marker and pans to center it */
   focusLocationId?: string | null;
   onFocusLocationConsumed?: () => void;
 };
