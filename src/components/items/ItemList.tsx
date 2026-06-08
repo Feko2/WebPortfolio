@@ -7,11 +7,12 @@ interface ItemListProps {
   items: Project[];
   selectedId: string;
   onSelect: (project: Project) => void;
+  onHover?: (id: string) => void;
 }
 
-export function ItemList({ items, selectedId, onSelect }: ItemListProps) {
+export function ItemList({ items, selectedId, onSelect, onHover }: ItemListProps) {
   return (
-    <div className="flex-1 overflow-y-auto pt-2">
+    <div className="flex-1 overflow-y-auto pt-1 no-scrollbar">
       <AnimatePresence mode="popLayout">
         {items.map((project, i) => {
           const isSelected = selectedId === project.id;
@@ -24,6 +25,7 @@ export function ItemList({ items, selectedId, onSelect }: ItemListProps) {
               exit={{ opacity: 0, x: -10 }}
               transition={{ delay: i * 0.04, duration: 0.25 }}
               onClick={() => onSelect(project)}
+              onMouseEnter={() => onHover?.(project.id)}
               className={`w-full text-left px-5 py-2.5 cursor-pointer transition-all duration-150 block
                 ${
                   isSelected
@@ -31,9 +33,7 @@ export function ItemList({ items, selectedId, onSelect }: ItemListProps) {
                     : "text-foreground/40 hover:text-foreground/60 hover:bg-foreground/[0.02]"
                 }`}
             >
-              <span className="text-[13px] tracking-wide">
-                {project.name}
-              </span>
+              <span className="text-[13px] tracking-wide">{project.name}</span>
             </motion.button>
           );
         })}
