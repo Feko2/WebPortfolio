@@ -1,9 +1,8 @@
-export type ProjectCategory = "weapons" | "armor" | "potions" | "scrolls";
-
 export interface Project {
   id: string;
   name: string;
-  category: ProjectCategory;
+  /** Domain tags shown on cards and in the showcase (e.g. "AI", "Full Stack"). */
+  tags: string[];
   date: string;
   role: string;
   /** Short one-line summary shown under the title. */
@@ -17,18 +16,11 @@ export interface Project {
   image?: string;
 }
 
-export const categoryLabels: Record<ProjectCategory, string> = {
-  weapons: "Weapons (Frontend)",
-  armor: "Armor (Backend)",
-  potions: "Potions (Tools)",
-  scrolls: "Scrolls (Full Stack)",
-};
-
 export const projects: Project[] = [
   {
     id: "ophnet",
     name: "OphNet",
-    category: "scrolls",
+    tags: ["Research", "Computer Vision"],
     date: "2025 — Present",
     role: "Research Lead",
     tagline: "Computer-vision glaucoma detection for clinical screening.",
@@ -46,7 +38,7 @@ export const projects: Project[] = [
   {
     id: "financ-ia",
     name: "Financ.ia",
-    category: "scrolls",
+    tags: ["Full Stack", "AI"],
     date: "2026",
     role: "Creator",
     tagline: "AI market & regulatory intelligence for Mexican finance.",
@@ -64,7 +56,7 @@ export const projects: Project[] = [
   {
     id: "warehouse-sim",
     name: "Warehouse Automaton",
-    category: "scrolls",
+    tags: ["Machine Learning", "Simulation"],
     date: "2024",
     role: "Lead Developer",
     tagline: "Multi-agent warehouse simulation driven by Q-Learning.",
@@ -81,7 +73,7 @@ export const projects: Project[] = [
   {
     id: "agronomai",
     name: "AgronomAI",
-    category: "scrolls",
+    tags: ["Full Stack", "IoT"],
     date: "2025",
     role: "Full-Stack Developer",
     tagline: "Real-time agricultural sensor monitoring with AI insights.",
@@ -99,7 +91,7 @@ export const projects: Project[] = [
   {
     id: "compilador",
     name: "Phase Compiler",
-    category: "potions",
+    tags: ["Compilers", "Tools"],
     date: "2026",
     role: "Creator",
     tagline: "A phase-by-phase compiler with a visual HTML report.",
@@ -117,7 +109,7 @@ export const projects: Project[] = [
   {
     id: "oracle-sr-scraper",
     name: "SR Scraper",
-    category: "potions",
+    tags: ["Automation"],
     date: "2025",
     role: "Software Engineer",
     tagline: "Unattended Oracle Fusion export automation in Playwright.",
@@ -135,7 +127,7 @@ export const projects: Project[] = [
   {
     id: "reto-ml",
     name: "NPFC Temporal Analysis",
-    category: "armor",
+    tags: ["Machine Learning", "Research"],
     date: "2026",
     role: "ML Engineer",
     tagline: "Multimodal temporal analysis of cognitive-affective signals.",
@@ -153,7 +145,7 @@ export const projects: Project[] = [
   {
     id: "portfolio",
     name: "Skyrim Portfolio",
-    category: "weapons",
+    tags: ["Web", "Frontend"],
     date: "2025",
     role: "Creator",
     tagline: "An interactive portfolio styled after Skyrim's menus.",
@@ -171,7 +163,7 @@ export const projects: Project[] = [
   {
     id: "oracle-mvp",
     name: "Ticket Forge",
-    category: "armor",
+    tags: ["Backend", "Enterprise"],
     date: "2024 — 2025",
     role: "Software Engineer",
     tagline: "Internal ticket-automation MVP built at Oracle.",

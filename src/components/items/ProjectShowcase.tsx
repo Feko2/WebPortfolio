@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Project, categoryLabels } from "@/data/projects";
-import { ProjectBanner } from "./ProjectBanner";
+import { Project } from "@/data/projects";
+import { ProjectBanner, bannerVariantForProject } from "./ProjectBanner";
 import { NordicKnot } from "@/components/ui/SkyFrame";
 
 interface ProjectShowcaseProps {
@@ -60,8 +60,7 @@ export function ProjectShowcase({
   onPrev,
   onNext,
 }: ProjectShowcaseProps) {
-  const categoryMeaning =
-    categoryLabels[project.category].split("(")[1]?.replace(")", "") ?? project.category;
+  const bannerVariant = bannerVariantForProject(project.id);
 
   return (
     <motion.div
@@ -107,15 +106,15 @@ export function ProjectShowcase({
             transition={{ duration: 0.5, delay: 0.05, ease: easing }}
             className="w-full aspect-[16/8] mb-8 relative"
           >
-            <ProjectBanner category={project.category} />
+            <ProjectBanner variant={bannerVariant} />
 
             {/* Index + category overlay */}
             <div className="absolute top-4 left-5 right-5 flex items-center justify-between">
               <span className="font-skyrim text-[10px] tracking-[0.3em] text-foreground/45 bg-black/30 backdrop-blur-[2px] px-2.5 py-1">
                 {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
               </span>
-              <span className="text-[8px] tracking-[0.2em] uppercase text-sky-400/60 font-skyrim bg-black/30 backdrop-blur-[2px] px-2.5 py-1">
-                {categoryMeaning}
+              <span className="text-[8px] tracking-[0.2em] uppercase text-sky-400/60 font-skyrim bg-black/30 backdrop-blur-[2px] px-2.5 py-1 truncate max-w-[50%]">
+                {project.tags.join(" · ")}
               </span>
             </div>
           </motion.div>
@@ -151,9 +150,11 @@ export function ProjectShowcase({
               <MidStat />
               <div>
                 <span className="text-[9px] tracking-[0.2em] text-foreground/25 uppercase block mb-1">
-                  Type
+                  Tags
                 </span>
-                <span className="font-skyrim text-base text-foreground/65">{categoryMeaning}</span>
+                <span className="font-skyrim text-base text-foreground/65">
+                  {project.tags.join(", ")}
+                </span>
               </div>
             </div>
           </motion.div>

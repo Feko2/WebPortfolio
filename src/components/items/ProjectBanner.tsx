@@ -1,34 +1,37 @@
 "use client";
 
-import { ProjectCategory } from "@/data/projects";
+/** Decorative banner motif index — visual variety only, not tied to project taxonomy. */
+export type BannerVariant = 0 | 1 | 2 | 3;
+
+export function bannerVariantForProject(id: string): BannerVariant {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % 4;
+  return hash as BannerVariant;
+}
 
 /**
- * Thematic showcase banners — one motif per project category.
+ * Thematic showcase banners — geometric line-art motifs for visual variety.
  *
- * The portfolio has no live project screenshots (no demo URLs exist to
- * capture, and GitHub code pages make poor showcase art), so each project
- * gets an original geometric line-art motif instead — in the same
- * SVG/CSS-only spirit as `NordicKnot` and the rest of `SkyFrame`. Motifs are
- * drawn in `currentColor` and tinted per category so the inventory keeps a
- * consistent, intentional look rather than empty placeholder space.
+ * The portfolio has no live project screenshots, so each project gets an
+ * original SVG motif in the same spirit as `NordicKnot` and `SkyFrame`.
  */
 
-const categoryAccent: Record<ProjectCategory, string> = {
-  weapons: "text-skyrim-gold/40",
-  armor: "text-foreground/35",
-  potions: "text-emerald-400/35",
-  scrolls: "text-sky-400/40",
+const variantAccent: Record<BannerVariant, string> = {
+  0: "text-skyrim-gold/40",
+  1: "text-foreground/35",
+  2: "text-emerald-400/35",
+  3: "text-sky-400/40",
 };
 
-const categoryGlow: Record<ProjectCategory, string> = {
-  weapons: "from-skyrim-gold/[0.07]",
-  armor: "from-foreground/[0.05]",
-  potions: "from-emerald-400/[0.06]",
-  scrolls: "from-sky-400/[0.07]",
+const variantGlow: Record<BannerVariant, string> = {
+  0: "from-skyrim-gold/[0.07]",
+  1: "from-foreground/[0.05]",
+  2: "from-emerald-400/[0.06]",
+  3: "from-sky-400/[0.07]",
 };
 
-// ─── Weapons (Frontend) — crossed blades ────────────────────────────────────
-function WeaponsMotif({ className = "" }: { className?: string }) {
+// ─── Motif A — crossed blades ───────────────────────────────────────────────
+function MotifA({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" className={className} fill="none" aria-hidden="true">
       <g opacity="0.9">
@@ -55,8 +58,8 @@ function WeaponsMotif({ className = "" }: { className?: string }) {
   );
 }
 
-// ─── Armor (Backend) — layered shield ───────────────────────────────────────
-function ArmorMotif({ className = "" }: { className?: string }) {
+// ─── Motif B — layered shield ─────────────────────────────────────────────────
+function MotifB({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" className={className} fill="none" aria-hidden="true">
       <g opacity="0.9">
@@ -81,8 +84,8 @@ function ArmorMotif({ className = "" }: { className?: string }) {
   );
 }
 
-// ─── Potions (Tools) — alchemy circle ───────────────────────────────────────
-function PotionsMotif({ className = "" }: { className?: string }) {
+// ─── Motif C — alchemy circle ───────────────────────────────────────────────
+function MotifC({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" className={className} fill="none" aria-hidden="true">
       <g opacity="0.9">
@@ -123,8 +126,8 @@ function PotionsMotif({ className = "" }: { className?: string }) {
   );
 }
 
-// ─── Scrolls (Full Stack) — unfurled scroll + seal ──────────────────────────
-function ScrollsMotif({ className = "" }: { className?: string }) {
+// ─── Motif D — unfurled scroll + seal ───────────────────────────────────────
+function MotifD({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" className={className} fill="none" aria-hidden="true">
       <g opacity="0.9">
@@ -159,30 +162,29 @@ function ScrollsMotif({ className = "" }: { className?: string }) {
   );
 }
 
-const motifs: Record<ProjectCategory, React.FC<{ className?: string }>> = {
-  weapons: WeaponsMotif,
-  armor: ArmorMotif,
-  potions: PotionsMotif,
-  scrolls: ScrollsMotif,
+const motifs: Record<BannerVariant, React.FC<{ className?: string }>> = {
+  0: MotifA,
+  1: MotifB,
+  2: MotifC,
+  3: MotifD,
 };
 
 interface ProjectBannerProps {
-  category: ProjectCategory;
+  variant: BannerVariant;
   className?: string;
 }
 
-export function ProjectBanner({ category, className = "" }: ProjectBannerProps) {
-  const Motif = motifs[category];
+export function ProjectBanner({ variant, className = "" }: ProjectBannerProps) {
+  const Motif = motifs[variant];
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
-      {/* Radial tint matching the category */}
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${categoryGlow[category]} via-transparent to-transparent`}
+        className={`absolute inset-0 bg-gradient-to-br ${variantGlow[variant]} via-transparent to-transparent`}
       />
       {/* Faint corner vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.35)_100%)]" />
       {/* Centered motif */}
-      <div className={`absolute inset-0 flex items-center justify-center ${categoryAccent[category]}`}>
+      <div className={`absolute inset-0 flex items-center justify-center ${variantAccent[variant]}`}>
         <Motif className="w-[46%] h-[46%]" />
       </div>
       {/* Hairline frame */}

@@ -3,7 +3,7 @@
 import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Project, categoryLabels } from "@/data/projects";
+import { Project } from "@/data/projects";
 import { NordicKnot } from "@/components/ui/SkyFrame";
 import { asset } from "@/lib/asset";
 
@@ -14,9 +14,7 @@ interface ProjectCardProps {
 
 export const ProjectCard = forwardRef<HTMLElement, ProjectCardProps>(
   function ProjectCard({ project, index }, ref) {
-    const categoryMeaning =
-      categoryLabels[project.category].split("(")[1]?.replace(")", "") ??
-      project.category;
+    const tagLine = project.tags.join(" · ");
 
     return (
       <motion.section
@@ -36,7 +34,7 @@ export const ProjectCard = forwardRef<HTMLElement, ProjectCardProps>(
           </span>
           <div className="flex-1 h-px bg-foreground/[0.06]" />
           <span className="text-[8px] tracking-[0.15em] uppercase text-sky-400/55 font-skyrim">
-            {categoryMeaning}
+            {tagLine}
           </span>
         </div>
 
