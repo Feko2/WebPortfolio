@@ -115,7 +115,7 @@ public/SkyUI/
 1. **Audio files** — all `.mp3` files in `public/sounds/` are empty. Need real sound effects.
 2. ~~**Font**~~ — **DONE.** Futura Condensed (Light, Medium, Bold) TTFs from SkyUI pack are in `public/fonts/` and registered in `globals.css`.
 3. **All data** — skills, projects, locations, resume entries are placeholder text.
-4. ~~**CV download**~~ — wired in Chronicle (`public/felipe-ramos-cv-en.pdf`).
+4. ~~**CV download**~~ — wired in Activities (`public/felipe-ramos-cv-en.pdf`).
 5. **Mobile** — no mobile-specific layout or touch interactions.
 6. **Images** — no project screenshots, no real map texture, no constellation icons. (Map markers, bar frames, card frames, and dividers are now covered by SkyUI assets.)
 7. **Links** — GitHub and demo URLs are placeholder.
@@ -131,7 +131,7 @@ Read these docs for detailed specifications on each part:
 | `SKILLS.md` | Constellation skill tree section — visual design, data schema, what needs work |
 | `ITEMS.md` | Project inventory section — layout, rarity system, data schema, what needs work |
 | `MAP.md` | World map section — parchment design, markers, pan/zoom, what needs work |
-| `MAGIC.md` | Chronicle (parchment CV) — schema, map/items links, what needs work |
+| `MAGIC.md` | Activities (antique newspaper) — schema, map/projects links, what needs work |
 | `AUDIO.md` | Audio system — Howler.js hook, sound registry, mute behavior, what needs work |
 | `DATA.md` | Data layer — all schemas, how to edit content, relationships |
 | `GOOGLE_STITCH_ASSETS.md` | Image/asset generation specs for Google Stitch — every visual asset needed |
@@ -162,4 +162,4 @@ Update in three places:
 
 ### "Wire up CV download"
 1. Place or replace the PDF at `public/felipe-ramos-cv-en.pdf`
-2. The Chronicle sidebar already links to it (`Download CV (PDF)`).
+2. The Activities section index already links to it (`Download PDF`).

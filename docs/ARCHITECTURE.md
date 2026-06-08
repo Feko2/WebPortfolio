@@ -151,9 +151,9 @@ Authentic Skyrim UI assets from the "Skyrim Interface Elements" pack are integra
 - **TopBar**: `wider-top-bar.png` frame, `escape.png` key icon, ornate dividers
 - **Main menu**: Ornate dividers (`ornate-l.png`, `ornate-r.png`) and mid dividers around character info
 - **Skills**: `selector-left.png` / `selector-right.png` arrows, ornate dividers above category bar
-- **Items**: `info-card-empty.png` detail frame, `bottom-bar-thin.png` carry weight footer, ornate dividers, dragon icon
+- **Projects**: `info-card-empty.png` detail frame, `bottom-bar-thin.png` carry weight footer, ornate dividers, dragon icon
 - **Map**: `college.png`, `fort.png`, `standing-stone.png` markers replace SVG pins
-- **Magic**: `dragon.png` icon in school headers, ornate dividers below headers and above download button
+- **Activities**: Playfair Display + Libre Baskerville fonts, newsprint gradient, double/single horizontal rules
 
 All image assets are loaded from `public/SkyUI/` using Next.js `<Image>` component for automatic optimization.
 

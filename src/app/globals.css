@@ -69,6 +69,35 @@ body {
   text-transform: uppercase;
 }
 
+.font-newspaper-display {
+  font-family: var(--font-newspaper-display), "Georgia", "Times New Roman", serif;
+}
+
+.font-newspaper-body {
+  font-family: var(--font-newspaper-body), "Georgia", "Times New Roman", serif;
+}
+
+.newspaper-drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-newspaper-display), "Georgia", serif;
+  font-size: 2.75em;
+  line-height: 0.78;
+  padding-right: 0.08em;
+  margin-top: 0.04em;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.newspaper-rule-double {
+  border: none;
+  border-top: 3px double #1a1a1a;
+}
+
+.newspaper-rule-single {
+  border: none;
+  border-top: 1px solid rgba(26, 26, 26, 0.35);
+}
+
 .text-glow {
   text-shadow: 0 0 10px rgba(212, 201, 168, 0.5), 0 0 20px rgba(212, 201, 168, 0.3);
 }

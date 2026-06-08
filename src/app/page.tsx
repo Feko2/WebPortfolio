@@ -21,7 +21,7 @@ const sectionBackgrounds: Record<Section, string> = {
   skills: "nebula-bg",
   items: "bg-[#0a0a0a]",
   map: "bg-[#0a0a0a]",
-  magic: "bg-[#1c1410]",
+  magic: "bg-[#1e1c18]",
 };
 
 const slideDirections: Record<Section, { x: number; y: number }> = {

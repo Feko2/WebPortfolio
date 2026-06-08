@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Playfair_Display, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 
 // Loaded via next/font/local so the @font-face URLs are emitted with the
@@ -26,6 +27,19 @@ const skyrim = localFont({
   display: "swap",
 });
 
+const newspaperDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-newspaper-display",
+  display: "swap",
+});
+
+const newspaperBody = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-newspaper-body",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Sena | Dragonborn Developer",
   description: "A Skyrim-themed interactive web portfolio",
@@ -37,7 +51,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={skyrim.variable}>
+    <html
+      lang="en"
+      className={`${skyrim.variable} ${newspaperDisplay.variable} ${newspaperBody.variable}`}
+    >
       <body className="antialiased">{children}</body>
     </html>
   );
