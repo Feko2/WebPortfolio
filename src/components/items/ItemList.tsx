@@ -5,7 +5,7 @@ import { Project } from "@/data/projects";
 
 interface ItemListProps {
   items: Project[];
-  selectedId: string;
+  selectedId: string | null;
   onSelect: (project: Project) => void;
   onHover?: (id: string) => void;
 }
