@@ -22,9 +22,10 @@ function KeyHint({ label, action }: { label: string; action: string }) {
 
 interface InventoryBarProps {
   projectCount: number;
+  currentLabel?: string;
 }
 
-export function InventoryBar({ projectCount }: InventoryBarProps) {
+export function InventoryBar({ projectCount, currentLabel }: InventoryBarProps) {
   return (
     <div className="shrink-0 px-6 lg:px-10 pb-12">
       <div className="relative h-8">
@@ -42,6 +43,14 @@ export function InventoryBar({ projectCount }: InventoryBarProps) {
 
           {/* Right: summary stats */}
           <div className="flex items-center gap-4">
+            {currentLabel && (
+              <>
+                <span className="font-skyrim text-[9px] tracking-[0.18em] text-foreground/35 uppercase max-w-[220px] truncate">
+                  {currentLabel}
+                </span>
+                <NordicKnot size={11} className="text-foreground/12" />
+              </>
+            )}
             <div className="flex items-center gap-2">
               <span className="font-skyrim text-[9px] tracking-[0.15em] text-foreground/30">
                 Projects
